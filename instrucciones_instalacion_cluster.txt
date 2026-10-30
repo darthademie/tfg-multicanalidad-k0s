@@ -1,0 +1,35 @@
+1.) Instalamos WSLv2 en nuestra máquina Windows y lo activamos
+
+2.) Instalamos Podman Desktop en windows. Para crear la máquina inicial, es necesario que esta
+cuente con permisos de root, por lo que debemos hacer este ajuste cuando arranquemos la máquina
+por primera vez.
+
+El nombre de la máquina debe ser podman-machine-teleupm-root
+
+Debemos también marcar las extensiones de Compose y Kubectl para configurarlas y usarlas en
+los siguientes pasos
+
+Debemos marcar la opción de "Machine with root privileges" y la de "User mode networking (traffic relayed by a user process)"
+
+3.) Importante instalar sobre podman el proveedor de podman-compose para que funcione la
+instalacion, así como kubectl.
+
+Esto lo podemos hacer desde Podman Desktop yendo a Settings (engranaje abajo a la izquierda) > Resources.
+De ahí, le damos a "Set up" en las extensiones configuradas de Kubectl y Compose de antes
+
+La configuración debe quedar sobre la parte de Resources tal cual se puede ver en la captura de pantalla
+"configuracion_podman.png" de esta carpeta.
+Ajustaremos la RAM y CPU en función de nuestra máquina
+
+4.) Ajustamos la CPU y RAM de la máquina virtual de podman. Para ello, ejecutamos el fichero "ajuste_CPU_RAM.ps1"
+de esta misma carpeta ajustando los parámetros a nuestro gusto. Es posible que necesitemos cambiar la
+política de ejecución de scripts de Powershell para poder ejecutarlo.
+
+5.) Modificamos el fichero hosts (C:\Windows\System32\drivers\etc\hosts)
+como administrador para añadirle las siguientes rutas...
+
+127.0.0.1  teleupm.com
+127.0.0.1  argocd.teleupm.com
+127.0.0.1  jenkins.teleupm.com
+
+6.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
