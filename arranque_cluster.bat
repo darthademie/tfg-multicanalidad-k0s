@@ -17,7 +17,7 @@ podman exec jenkins-local bash -c "while [ ! -f /var/jenkins_home/secrets/initia
 
 echo.
 echo ========================================================
-echo Contrasena inicial de Jenkins:
+echo Contrasenia inicial de Jenkins:
 podman exec jenkins-local cat /var/jenkins_home/secrets/initialAdminPassword
 echo ========================================================
 
@@ -40,33 +40,35 @@ echo [5/6] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-rem Configurar ArgoCD en modo 'insecure' (ejecutado dentro de sh -c para que Linux procese el JSON)
+rem Configurar ArgoCD en modo 'insecure'
 podman exec k0s-cluster sh -c "k0s kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{\"data\":{\"server.insecure\":\"true\"}}'"
 
-rem Reiniciar el servidor de ArgoCD para que aplique el cambio
+rem Reiniciar el servidor de ArgoCD
 podman exec k0s-cluster k0s kubectl rollout restart deployment argocd-server -n argocd
 
-rem Crear el Ingress para acceder en http://argocd.teleupm.com
-podman exec k0s-cluster sh -c "cat << 'EOF' | k0s kubectl apply -f -
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: argocd-ingress
-  namespace: argocd
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: argocd.teleupm.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: argocd-server
-                port:
-                  number: 80
-EOF"
+rem Generamos el YAML de ArgoCD localmente y lo inyectamos (-i) al clúster
+(
+echo apiVersion: networking.k8s.io/v1
+echo kind: Ingress
+echo metadata:
+echo   name: argocd-ingress
+echo   namespace: argocd
+echo spec:
+echo   ingressClassName: nginx
+echo   rules:
+echo     - host: argocd.teleupm.com
+echo       http:
+echo         paths:
+echo           - path: /
+echo             pathType: Prefix
+echo             backend:
+echo               service:
+echo                 name: argocd-server
+echo                 port:
+echo                   number: 80
+) > argocd-ingress.yaml
+
+type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo Esperando a que ArgoCD descargue sus imagenes y genere la contrasena (puede tardar 1-2 min)...
@@ -74,7 +76,7 @@ podman exec k0s-cluster sh -c "until k0s kubectl -n argocd get secret argocd-ini
 
 echo.
 echo ========================================================
-echo Contrasena de ArgoCD (usuario: admin):
+echo Contrasenia de ArgoCD (usuario: admin):
 podman exec k0s-cluster sh -c "k0s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d && echo"
 echo ========================================================
 
@@ -83,58 +85,61 @@ rem ############### ENRUTAR JENKINS POR INGRESS ###############
 echo.
 echo [6/6] Configurando Ingress para Jenkins (http://jenkins.teleupm.com)...
 
-rem 1. Obtenemos automaticamente la IP interna del contenedor de Jenkins en la red de Podman
+rem Obtenemos automaticamente la IP interna del contenedor
 for /f "delims=" %%i in ('podman inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" jenkins-local') do set JENKINS_IP=%%i
 echo IP interna detectada para Jenkins: %JENKINS_IP%
 
-rem 2. Creamos el Service, el Endpoint apuntando a esa IP y el Ingress en k0s
-podman exec k0s-cluster sh -c "cat << 'EOF' | k0s kubectl apply -f -
-apiVersion: v1
-kind: Service
-metadata:
-  name: jenkins-external-svc
-  namespace: default
-spec:
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: jenkins-external-svc
-  namespace: default
-subsets:
-  - addresses:
-      - ip: %JENKINS_IP%
-    ports:
-      - port: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: jenkins-ingress
-  namespace: default
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: jenkins.teleupm.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: jenkins-external-svc
-                port:
-                  number: 80
-EOF"
+rem Generamos el YAML de Jenkins dinamicamente (para que pille la variable) y lo aplicamos
+(
+echo apiVersion: v1
+echo kind: Service
+echo metadata:
+echo   name: jenkins-external-svc
+echo   namespace: default
+echo spec:
+echo   ports:
+echo     - protocol: TCP
+echo       port: 80
+echo       targetPort: 8080
+echo ---
+echo apiVersion: v1
+echo kind: Endpoints
+echo metadata:
+echo   name: jenkins-external-svc
+echo   namespace: default
+echo subsets:
+echo   - addresses:
+echo       - ip: %JENKINS_IP%
+echo     ports:
+echo       - port: 8080
+echo ---
+echo apiVersion: networking.k8s.io/v1
+echo kind: Ingress
+echo metadata:
+echo   name: jenkins-ingress
+echo   namespace: default
+echo spec:
+echo   ingressClassName: nginx
+echo   rules:
+echo     - host: jenkins.teleupm.com
+echo       http:
+echo         paths:
+echo           - path: /
+echo             pathType: Prefix
+echo             backend:
+echo               service:
+echo                 name: jenkins-external-svc
+echo                 port:
+echo                   number: 80
+) > jenkins-ingress.yaml
+
+type jenkins-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 
 echo.
 echo ========================================================
 echo Todo listo!! Ya puedes probar el acceso al clúster
 echo ========================================================
+echo.
 
 pause
