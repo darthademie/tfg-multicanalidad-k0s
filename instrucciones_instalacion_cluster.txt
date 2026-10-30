@@ -39,4 +39,32 @@ como administrador para añadirle las siguientes rutas...
 127.0.0.1  argocd.teleupm.com
 127.0.0.1  jenkins.teleupm.com
 
+7.) Tenemos que decirle a fireabase que "teleupm.com" es seguro para hacer login desde esa
+página. De lo contrario, el login con Google fallará en la app de gestión web.
+
+Para ello, debes registrarlo en dos plataformas:
+
+- Consola de Firebase (Dominios Autorizados):
+
+Entra a tu proyecto en la consola de Firebase.
+
+Ve a Authentication > Settings (Configuración) > Authorized domains.
+
+Añade teleupm.com a la lista.
+
+- Google Cloud Console (Credenciales OAuth - El paso crítico):
+Firebase crea por debajo un cliente OAuth en Google Cloud para gestionar el botón de login, y este tiene sus propias reglas estrictas.
+
+Entra en console.cloud.google.com y selecciona el proyecto de Google Cloud que corresponde a tu Firebase.
+
+En el menú lateral, ve a API y Servicios > Credenciales.
+
+En la sección "ID de cliente de OAuth 2.0", haz clic en el cliente web de tu proyecto (suele llamarse "Web client (auto created by Google Service)").
+
+En el apartado Orígenes autorizados de JavaScript, añade exactamente tu URL con HTTPS: [https://teleupm.com](https://teleupm.com)
+
+En el apartado URI de redireccionamiento autorizados, añade la ruta estándar que usa Firebase: [https://teleupm.com/__/auth/handler](https://teleupm.com/__/auth/handler)
+
+Guarda los cambios (Tarda de 5 a 10 minutos en aplicarse).
+
 7.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
