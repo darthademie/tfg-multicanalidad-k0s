@@ -17,19 +17,26 @@ instalacion, así como kubectl.
 Esto lo podemos hacer desde Podman Desktop yendo a Settings (engranaje abajo a la izquierda) > Resources.
 De ahí, le damos a "Set up" en las extensiones configuradas de Kubectl y Compose de antes
 
+4.) Para poder subir imágenes a la cuenta, debemos configurar Docker Hub como registro principal. Para ello,
+ejecutaremos en orden...
+
+[ podman machine ssh podman-machine-teleupm-root  ]
+[ sudo vi /etc/containers/registries.conf ]
+[ exit ]
+
 La configuración debe quedar sobre la parte de Resources tal cual se puede ver en la captura de pantalla
 "configuracion_podman.png" de esta carpeta.
 Ajustaremos la RAM y CPU en función de nuestra máquina
 
-4.) Ajustamos la CPU y RAM de la máquina virtual de podman. Para ello, ejecutamos el fichero "ajuste_CPU_RAM.ps1"
+5.) Ajustamos la CPU y RAM de la máquina virtual de podman. Para ello, ejecutamos el fichero "ajuste_CPU_RAM.ps1"
 de esta misma carpeta ajustando los parámetros a nuestro gusto. Es posible que necesitemos cambiar la
 política de ejecución de scripts de Powershell para poder ejecutarlo.
 
-5.) Modificamos el fichero hosts (C:\Windows\System32\drivers\etc\hosts)
+6.) Modificamos el fichero hosts (C:\Windows\System32\drivers\etc\hosts)
 como administrador para añadirle las siguientes rutas...
 
 127.0.0.1  teleupm.com
 127.0.0.1  argocd.teleupm.com
 127.0.0.1  jenkins.teleupm.com
 
-6.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
+7.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
