@@ -2,14 +2,14 @@
 chcp 65001 >nul
 
 rem 1. Levantar los contenedores
-echo [1/6] Levantando contenedores con Podman Compose...
+echo [1/8] Levantando contenedores con Podman Compose...
 set DOCKER_HOST=npipe:////./pipe/podman-machine-teleupm-root
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
 
 echo.
-echo [2/6] Instalando el cliente de Docker dentro de Jenkins...
+echo [2/8] Instalando el cliente de Docker dentro de Jenkins...
 podman exec -u root jenkins-local bash -c "apt-get update && apt-get install -y docker.io"
 
 echo Esperando a que Jenkins genere la contrasena inicial...
@@ -24,19 +24,19 @@ echo ========================================================
 rem ############### ESPERA DE K0S E INGRESS ###############
 
 echo.
-echo [3/6] Esperando a que el cluster k0s termine de arrancar...
+echo [3/8] Esperando a que el cluster k0s termine de arrancar...
 podman exec k0s-cluster sh -c "until k0s kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
 podman exec k0s-cluster k0s kubectl wait --for=condition=Ready node --all --timeout=120s
 
 echo.
-echo [4/6] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
+echo [4/8] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
 podman exec k0s-cluster k0s kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/baremetal/deploy.yaml
 podman exec k0s-cluster sh -c "k0s kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\": 30080}, {\"op\": \"replace\", \"path\": \"/spec/ports/1/nodePort\", \"value\": 30443}]'"
 
 rem ############### CONFIGURACION DE ARGOCD ###############
 
 echo.
-echo [5/6] Instalando y configurando ArgoCD...
+echo [5/8] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -59,7 +59,7 @@ echo ========================================================
 rem ############### ENRUTAR JENKINS POR INGRESS ###############
 
 echo.
-echo [6/6] Configurando Ingress para Jenkins (http://jenkins.teleupm.com)
+echo [6/8] Configurando Ingress para Jenkins (http://jenkins.teleupm.com)
 echo y ArgoCD (http://argocd.teleupm.com)...
 
 echo.
@@ -102,6 +102,12 @@ echo kind: Ingress
 echo metadata:
 echo   name: jenkins-ingress
 echo   namespace: default
+echo annotations:
+echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+echo    nginx.ingress.kubernetes.io/hsts: "true"
+echo    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+echo    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
 echo spec:
 echo   ingressClassName: nginx
 echo   rules:
@@ -126,6 +132,12 @@ echo kind: Ingress
 echo metadata:
 echo   name: argocd-ingress
 echo   namespace: argocd
+echo annotations:
+echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+echo    nginx.ingress.kubernetes.io/hsts: "true"
+echo    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+echo    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
 echo spec:
 echo   ingressClassName: nginx
 echo   rules:
@@ -142,6 +154,18 @@ echo                   number: 80
 ) > argocd-ingress.yaml
 
 type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+
+echo.
+echo [7/8] Creando namespace para aplicaciones
+
+podman exec k0s-cluster k0s kubectl create namespace apps
+
+echo.
+echo [8/8] Desplegando gestor web (http://teleupm.com)
+echo y backend de Telegram
+
+type workloads/teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads/teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo ========================================================
