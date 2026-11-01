@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-data-pvc
+  namespace: apps
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,6 +25,9 @@ spec:
       labels:
         app: n8n
     spec:
+      # Da permisos de escritura al usuario 'node' sobre el disco montado
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: n8n-container
           image: n8nio/n8n:latest
@@ -26,6 +41,13 @@ spec:
             # Vital para que las URLs de los webhooks que generes tengan tu dominio real
             - name: WEBHOOK_URL
               value: "https://teleupm.com/flujos/"
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-data-pvc
 ---
 apiVersion: v1
 kind: Service
