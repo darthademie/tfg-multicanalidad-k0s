@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n-deployment
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+        - name: n8n-container
+          image: n8nio/n8n:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5678
+          env:
+            # Le decimos a n8n que su frontend debe cargar bajo /flujos/
+            - name: N8N_PATH
+              value: "/flujos/"
+            # Vital para que las URLs de los webhooks que generes tengan tu dominio real
+            - name: WEBHOOK_URL
+              value: "https://teleupm.com/flujos/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n-svc
+  namespace: apps
+spec:
+  type: ClusterIP
+  selector:
+    app: n8n
+  ports:
+    - port: 5678
+      targetPort: 5678

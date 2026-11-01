@@ -59,8 +59,8 @@ echo ========================================================
 rem ############### ENRUTAR JENKINS POR INGRESS ###############
 
 echo.
-echo [6/8] Configurando Ingress para Jenkins (http://jenkins.teleupm.com)
-echo y ArgoCD (http://argocd.teleupm.com)...
+echo [6/8] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
+echo y ArgoCD (https://argocd.teleupm.com)...
 
 echo.
 echo Esperando a que el controlador de Ingress y su Webhook esten operativos...
@@ -102,7 +102,7 @@ echo kind: Ingress
 echo metadata:
 echo   name: jenkins-ingress
 echo   namespace: default
-echo annotations:
+echo   annotations:
 echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 echo    nginx.ingress.kubernetes.io/hsts: "true"
@@ -132,7 +132,7 @@ echo kind: Ingress
 echo metadata:
 echo   name: argocd-ingress
 echo   namespace: argocd
-echo annotations:
+echo   annotations:
 echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 echo    nginx.ingress.kubernetes.io/hsts: "true"
@@ -161,15 +161,19 @@ echo [7/8] Creando namespace para aplicaciones
 podman exec k0s-cluster k0s kubectl create namespace apps
 
 echo.
-echo [8/8] Desplegando gestor web (http://teleupm.com)
-echo y backend de Telegram
+echo [8/8] Desplegando gestor web, N8N y backend de Telegram...
 
-type workloads/teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
-type workloads/teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+rem type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo ========================================================
-echo Todo listo!! Ya puedes probar el acceso al clúster
+echo Todo listo!! Ya puedes probar el acceso al cluster
+echo Jenkins: https://jenkins.teleupm.com
+echo Argo CD: https://argocd.teleupm.com
+echo Frontend web: https://teleupm.com
+echo Flujos N8N:   https://teleupm.com/flujos
 echo ========================================================
 echo.
 
