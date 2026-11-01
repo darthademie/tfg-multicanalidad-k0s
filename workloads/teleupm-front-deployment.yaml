@@ -59,7 +59,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: n8n-svc
+                name: teleupm-n8n-svc
                 port:
                   number: 5678
           - path: /()(.*)

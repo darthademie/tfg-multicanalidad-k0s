@@ -1,19 +1,35 @@
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  name: n8n-data-pvc
-  namespace: apps
+  name: teleupm-n8n-pv
 spec:
+  capacity:
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /var/n8n-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: teleupm-n8n-data-pvc
+  namespace: apps
+spec:
+  volumeName: teleupm-n8n-pv
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
   resources:
     requests:
-      storage: 500Mi
+      storage: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: n8n-deployment
+  name: teleupm-n8n-deployment
   namespace: apps
 spec:
   replicas: 1
@@ -28,6 +44,14 @@ spec:
       # Da permisos de escritura al usuario 'node' sobre el disco montado
       securityContext:
         fsGroup: 1000
+      # --- Cambia los permisos de la carpeta antes de arrancar n8n ---
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /home/node/.n8n"]
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
       containers:
         - name: n8n-container
           image: n8nio/n8n:latest
@@ -47,12 +71,12 @@ spec:
       volumes:
         - name: n8n-data
           persistentVolumeClaim:
-            claimName: n8n-data-pvc
+            claimName: teleupm-n8n-data-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: n8n-svc
+  name: teleupm-n8n-svc
   namespace: apps
 spec:
   type: ClusterIP
