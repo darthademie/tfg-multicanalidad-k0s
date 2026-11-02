@@ -26,6 +26,12 @@ ejecutaremos en orden...
 
 [ podman machine ssh podman-machine-teleupm  ]
 [ sudo vi /etc/containers/registries.conf ]
+
+Aquí, ponemos solo una línea así (Definición v2 del registro docker
+por defecto)...
+
+unqualified-search-registries = ["docker.io"]
+
 [ exit ]
 
 La configuración debe quedar sobre la parte de Resources tal cual se puede ver en la captura de pantalla
