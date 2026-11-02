@@ -3,7 +3,7 @@ chcp 65001 >nul
 
 echo.
 echo ========================================================
-echo      PAUSANDO EL ENTORNO ON-PREMISE (SIN PERDER DATOS)
+echo    PAUSANDO EL ENTORNO ON-PREMISE (SIN PERDER DATOS)
 echo ========================================================
 echo.
 echo Este script detendra los contenedores y la maquina virtual

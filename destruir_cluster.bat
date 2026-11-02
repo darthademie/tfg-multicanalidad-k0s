@@ -3,7 +3,7 @@ chcp 65001 >nul
 
 echo.
 echo ========================================================
-echo      DESTRUYENDO EL ENTORNO ON-PREMISE (LIMPIEZA TOTAL)
+echo   DESTRUYENDO EL ENTORNO ON-PREMISE (LIMPIEZA TOTAL)
 echo ========================================================
 echo.
 echo ¡ADVERTENCIA! Esto borrara todos los contenedores y los
