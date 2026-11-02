@@ -14,13 +14,13 @@ pause >nul
 
 rem 1. Levantar los contenedores
 echo.
-echo [1/8] Levantando contenedores con Podman Compose...
+echo [1/9] Levantando contenedores con Podman Compose...
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
 
 echo.
-echo [2/8] Instalando el cliente de Docker dentro de Jenkins...
+echo [2/9] Instalando el cliente de Docker dentro de Jenkins...
 podman exec -u root jenkins-local bash -c "apt-get update && apt-get install -y docker.io"
 
 echo Esperando a que Jenkins genere la contrasena inicial...
@@ -35,19 +35,19 @@ echo ========================================================
 rem ############### ESPERA DE K0S E INGRESS ###############
 
 echo.
-echo [3/8] Esperando a que el cluster k0s termine de arrancar...
+echo [3/9] Esperando a que el cluster k0s termine de arrancar...
 podman exec k0s-cluster sh -c "until k0s kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
 podman exec k0s-cluster k0s kubectl wait --for=condition=Ready node --all --timeout=120s
 
 echo.
-echo [4/8] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
+echo [4/9] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
 podman exec k0s-cluster k0s kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/baremetal/deploy.yaml
 podman exec k0s-cluster sh -c "k0s kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\": 30080}, {\"op\": \"replace\", \"path\": \"/spec/ports/1/nodePort\", \"value\": 30443}]'"
 
 rem ############### CONFIGURACION DE ARGOCD ###############
 
 echo.
-echo [5/8] Instalando y configurando ArgoCD...
+echo [5/9] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -70,7 +70,7 @@ echo ========================================================
 rem ############### ENRUTAR JENKINS POR INGRESS ###############
 
 echo.
-echo [6/8] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
+echo [6/9] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
 echo y ArgoCD (https://argocd.teleupm.com)...
 
 echo.
@@ -167,12 +167,27 @@ echo                   number: 80
 type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
-echo [7/8] Creando namespace para aplicaciones
+echo [7/9] Creando namespace para aplicaciones
 
 podman exec k0s-cluster k0s kubectl create namespace apps
 
+echo [8/9] Inyectando claves de Firebase y Telegram en Kubernetes...
+
+rem 1. Enviar el contenido de los ficheros locales a la carpeta temporal de k0s
+podman cp keys\serviceAccountKey.json k0s-cluster:/tmp/serviceAccountKey.json
+podman cp keys\telegram_token.txt k0s-cluster:/tmp/telegram_token.txt
+
+rem 2. Borrar el secret si ya existiera (para permitir actualizaciones limpias)
+podman exec k0s-cluster k0s kubectl delete secret teleupm-keys-secret -n apps 2>nul
+
+rem 3. Empaquetar ambos ficheros en un unico Secret de Kubernetes
+podman exec k0s-cluster k0s kubectl create secret generic teleupm-keys-secret --from-file=serviceAccountKey.json=/tmp/serviceAccountKey.json --from-file=telegram_token.txt=/tmp/telegram_token.txt -n apps
+
+rem 4. Limpiar los ficheros temporales por seguridad
+podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_token.txt"
+
 echo.
-echo [8/8] Desplegando gestor web, N8N y backend de Telegram...
+echo [9/9] Desplegando gestor web, N8N y backend de Telegram...
 
 type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
@@ -193,7 +208,7 @@ echo Ten en cuenta que algunas funcionalidades como N8N
 echo son más pesadas y pueden tardar en arrancar.
 echo.
 echo Espera 1-5 minutos antes de probar para no dar por
-echo fallido el despliegue en vano
+echo fallido el despliegue
 echo ========================================================
 
 pause
