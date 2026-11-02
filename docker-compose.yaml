@@ -28,7 +28,9 @@ services:
       - "50000:50000" # Puerto para agentes
     volumes:
       - jenkins_home:/var/jenkins_home
-      # Conectamos el socket de Podman como si fuera el de Docker:
+      # Conectamos el socket de Podman como si fuera el de Docker,
+      # así, Jenkins podrá generar los contenedores necesarios para
+      # seguir los pasos de los pipelines
       - /run/podman/podman.sock:/var/run/docker.sock
     restart: unless-stopped
 
