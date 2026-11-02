@@ -17,7 +17,7 @@ echo.
 echo ========================================================
 echo Entorno reanudado con exito. 
 echo NOTA: k0s tardara unos ~30-45 segundos en levantar 
-echo internamente todos los pods (n8n, frontend, SBT, ArgoCD).
+echo internamente todos los pods (n8n, frontend, SBT...).
 echo ========================================================
 echo.
 pause
