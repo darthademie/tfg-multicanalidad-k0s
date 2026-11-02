@@ -1,0 +1,87 @@
+---------------------------------------------------------------------------
+CONFIGURACION DE JENKINS
+---------------------------------------------------------------------------
+
+1.) Configuracion Jenkins: ngrok para webhooks
+
+--------> ngrok
+
+Se usará ngrok para los webhook de Jenkins
+
+[ winget install --id Ngrok.Ngrok -e ]
+
+Creamos cuenta en Ngrok, y obtenemos nuestro token (Elegimos share-localhost
+como modo de uso)
+
+Metemos ese token en la cmd 
+
+[ ngrok config add-authtoken ******... ]
+
+A partir de ahora, hay que añadir el ngrok a configuraciones de exclusión.
+Esta herramienta genera un túnel al puerto deseado de la máquina local
+para exponer un endpoint público en la página de ngrok
+
+Esto es útil para que funcionen los webhooks de manera local con Jenkins
+
+Ahora, actualizaremos ngrok para que empiece a funcionar.
+Haremos en la cmd de nuevo...
+
+[ ngrok update ]
+
+Ahora, expondremos la interfaz de Jenkins con un túnel con
+el siguiente comando:
+
+[ ngrok http --host-header=jenkins.teleupm.com 80 ]
+
+¡ADVERTENCIA! Esta interfaz la levantaremos solo para la demostración, porque en un entorno
+real esto funcionará con un servidor en línea que no expondrá configuraciones
+hacia un ordenador personal, como lo es en este caso
+
+---> GitHub
+
+Ahora vamos a decirle a GitHub a dónde tiene que avisar cuando haya cambios de código.
+
+Ve a tu repositorio en GitHub > Settings > Webhooks > Add webhook.
+
+- Payload URL: Pega tu URL de Ngrok seguida de la ruta exacta de Jenkins (ngrok url + endpoint /github-webhook/)
+Ejemplo: [https://a1b2-c3d4.ngrok-free.app/github-webhook/](https://a1b2-c3d4.ngrok-free.app/github-webhook/)
+- Content type: Cámbialo a application/json.
+- Secret: Déjalo en blanco.
+- SSL verficiation: Enable SSL verification (https por ngrok + https del clúster)
+- Which events would you like to trigger this webhook?: Deja marcado "Just the push event".
+
+Finalmente, haz clic en Add webhook.
+
+Verification: GitHub enviará un "ping" de prueba. Si todo está bien, aparecerá un check verde (✓) junto a tu nuevo webhook.
+
+2.) Configuracion Jenkins: Creación de pipelines
+
+--------> Autenticacion para Docker Hub
+
+Entra en tu Jenkins ([https://jenkins.teleupm.com](https://jenkins.teleupm.com)). Ve al botón de perfil arriba a la izq.
+Le damos a Credentials > Add credentials > System > Global
+
+Rellena los campos exactamente así:
+
+- Kind: Username with password
+- Username: darthademie.
+- Password: Token con acceso de lectura/escritura de Docker-hub. Lo podemos llamar "Jenkins Token" y le debemos dar permisos de
+"Read, write and delete".
+- ID: dockerhub-darthademie (Crítico: tiene que llamarse exactamente así porque es el nombre que busca el Jenkinsfile).
+- Description: Credenciales de Docker Hub.
+
+---------> Creación del pipeline
+
+En la interfaz de Jenkins, haz clic en Nueva Tarea y asígnale un nombre (ej. tfg-multicanalidad-web-pipeline).
+
+Selecciona el tipo Pipeline y guarda.
+
+En la configuración de la tarea, baja hasta la sección Disparadores de ejecución (Build Triggers) y marca la casilla "GitHub hook trigger for GITScm polling".
+
+En la sección Pipeline, cambia la definición a Pipeline script from SCM.
+
+Configura el apartado SCM como Git e introduce la URL del repositorio: [https://github.com/darthademie/tfg-multicanalidad-web.git](https://github.com/darthademie/tfg-multicanalidad-web.git).
+
+Asegúrate de que en el campo Script Path aparezca solo "Jenkinsfile".
+
+Guarda la configuración y ejecuta la tarea manualmente una vez (haciendo clic en Construir ahora) para que Jenkins descargue y registre el pipeline por primera vez.
