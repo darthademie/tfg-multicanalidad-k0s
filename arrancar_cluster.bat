@@ -13,6 +13,7 @@ echo Pulsa CTRL+C si quieres cancelar, o cualquier tecla para continuar.
 pause >nul
 
 rem 1. Levantar los contenedores
+echo.
 echo [1/8] Levantando contenedores con Podman Compose...
 podman compose up -d
 
@@ -186,5 +187,13 @@ echo Frontend web: https://teleupm.com
 echo Flujos N8N:   https://teleupm.com/flujos
 echo ========================================================
 echo.
+
+echo ========================================================
+echo Ten en cuenta que algunas funcionalidades como N8N
+echo son más pesadas y pueden tardar en arrancar.
+echo.
+echo Espera 1-5 minutos antes de probar para no dar por
+echo fallido el despliegue en vano
+echo ========================================================
 
 pause
