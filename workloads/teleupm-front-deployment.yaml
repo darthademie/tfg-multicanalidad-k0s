@@ -50,7 +50,8 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - teleupm.com
+      - teleupm.com
+      secretName: teleupm-tls-secret
   rules:
     - host: teleupm.com
       http:

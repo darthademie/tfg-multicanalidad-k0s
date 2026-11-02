@@ -8,19 +8,19 @@ echo ========================================================
 echo.
 echo Este script creará los contenedores y la infraestructura
 echo local de k0s desde 0.
-echo ¡ADVERTENCIA! Esto recreará todo lo mencionado si
+echo ¡ADVERTENCIA! Esto recreará todo lo mencionado.
 echo Pulsa CTRL+C si quieres cancelar, o cualquier tecla para continuar.
 pause >nul
 
 rem 1. Levantar los contenedores
 echo.
-echo [1/9] Levantando contenedores con Podman Compose...
+echo [1/10] Levantando contenedores con Podman Compose...
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
 
 echo.
-echo [2/9] Instalando el cliente de Docker dentro de Jenkins...
+echo [2/10] Instalando el cliente de Docker dentro de Jenkins...
 podman exec -u root jenkins-local bash -c "apt-get update && apt-get install -y docker.io"
 
 echo Esperando a que Jenkins genere la contrasena inicial...
@@ -35,19 +35,19 @@ echo ========================================================
 rem ############### ESPERA DE K0S E INGRESS ###############
 
 echo.
-echo [3/9] Esperando a que el cluster k0s termine de arrancar...
+echo [3/10] Esperando a que el cluster k0s termine de arrancar...
 podman exec k0s-cluster sh -c "until k0s kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
 podman exec k0s-cluster k0s kubectl wait --for=condition=Ready node --all --timeout=120s
 
 echo.
-echo [4/9] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
+echo [4/10] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
 podman exec k0s-cluster k0s kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/baremetal/deploy.yaml
 podman exec k0s-cluster sh -c "k0s kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\": 30080}, {\"op\": \"replace\", \"path\": \"/spec/ports/1/nodePort\", \"value\": 30443}]'"
 
 rem ############### CONFIGURACION DE ARGOCD ###############
 
 echo.
-echo [5/9] Instalando y configurando ArgoCD...
+echo [5/10] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -67,10 +67,41 @@ echo Contrasenia de ArgoCD (usuario: admin):
 podman exec k0s-cluster sh -c "k0s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d && echo"
 echo ========================================================
 
-rem ############### ENRUTAR JENKINS POR INGRESS ###############
+rem ############### CONFIGURACION DE NAMESPACE DE APLICACIONES ###############
 
 echo.
-echo [6/9] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
+echo [6/10] Creando namespace para aplicaciones
+
+podman exec k0s-cluster k0s kubectl create namespace apps
+
+rem ############### CONFIGURACION DE CERTIFICADOS INGRESS ###############
+
+echo.
+echo [7/10] Inyectando certificado HTTPS para el Ingress...
+
+rem 1. Copiar los archivos binarios puros al contenedor temporal
+podman cp certs\tls.crt k0s-cluster:/tmp/tls.crt
+podman cp certs\tls.key k0s-cluster:/tmp/tls.key
+
+rem 2a. Borrar y crear en el namespace "apps" (Para las apps y workers)
+podman exec k0s-cluster k0s kubectl delete secret teleupm-tls-secret -n apps 2>nul
+podman exec k0s-cluster k0s kubectl create secret tls teleupm-tls-secret --cert=/tmp/tls.crt --key=/tmp/tls.key -n apps
+
+rem 2b. Borrar y crear en el namespace "default" (Para Jenkins)
+podman exec k0s-cluster k0s kubectl delete secret teleupm-tls-secret -n default 2>nul
+podman exec k0s-cluster k0s kubectl create secret tls teleupm-tls-secret --cert=/tmp/tls.crt --key=/tmp/tls.key -n default
+
+rem 2c. Borrar y crear en el namespace "argocd" (Para ArgoCD)
+podman exec k0s-cluster k0s kubectl delete secret teleupm-tls-secret -n argocd 2>nul
+podman exec k0s-cluster k0s kubectl create secret tls teleupm-tls-secret --cert=/tmp/tls.crt --key=/tmp/tls.key -n argocd
+
+rem 3. Limpiar
+podman exec k0s-cluster sh -c "rm /tmp/tls.crt /tmp/tls.key"
+
+rem ############### ENRUTAR JENKINS/ARGOCD POR INGRESS ###############
+
+echo.
+echo [8/10] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
 echo y ArgoCD (https://argocd.teleupm.com)...
 
 echo.
@@ -114,13 +145,17 @@ echo metadata:
 echo   name: jenkins-ingress
 echo   namespace: default
 echo   annotations:
-echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-echo    nginx.ingress.kubernetes.io/hsts: "true"
-echo    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
-echo    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+echo     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/hsts: "true"
+echo     nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+echo     nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
 echo spec:
 echo   ingressClassName: nginx
+echo   tls:
+echo     - hosts:
+echo         - jenkins.teleupm.com
+echo       secretName: teleupm-tls-secret
 echo   rules:
 echo     - host: jenkins.teleupm.com
 echo       http:
@@ -144,13 +179,17 @@ echo metadata:
 echo   name: argocd-ingress
 echo   namespace: argocd
 echo   annotations:
-echo    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-echo    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-echo    nginx.ingress.kubernetes.io/hsts: "true"
-echo    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
-echo    nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+echo     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/hsts: "true"
+echo     nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+echo     nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
 echo spec:
 echo   ingressClassName: nginx
+echo   tls:
+echo     - hosts:
+echo         - argocd.teleupm.com
+echo       secretName: teleupm-tls-secret
 echo   rules:
 echo     - host: argocd.teleupm.com
 echo       http:
@@ -167,11 +206,7 @@ echo                   number: 80
 type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
-echo [7/9] Creando namespace para aplicaciones
-
-podman exec k0s-cluster k0s kubectl create namespace apps
-
-echo [8/9] Inyectando claves de Firebase y Telegram en Kubernetes...
+echo [9/10] Inyectando claves de Firebase y Telegram en Kubernetes...
 
 rem 1. Enviar el contenido de los ficheros locales a la carpeta temporal de k0s
 podman cp keys\serviceAccountKey.json k0s-cluster:/tmp/serviceAccountKey.json
@@ -186,8 +221,10 @@ podman exec k0s-cluster k0s kubectl create secret generic teleupm-keys-secret --
 rem 4. Limpiar los ficheros temporales por seguridad
 podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_token.txt"
 
+rem ############### DESPLIEGUE DE APLICACIONES ###############
+
 echo.
-echo [9/9] Desplegando gestor web, N8N y backend de Telegram...
+echo [10/10] Desplegando gestor web, N8N y backend de Telegram...
 
 type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
@@ -210,5 +247,6 @@ echo.
 echo Espera 1-5 minutos antes de probar para no dar por
 echo fallido el despliegue
 echo ========================================================
+echo.
 
 pause

@@ -24,7 +24,7 @@ De ahí, le damos a "Set up" en las extensiones configuradas de Kubectl y Compos
 4.) Para poder subir imágenes a la cuenta, debemos configurar Docker Hub como registro principal. Para ello,
 ejecutaremos en orden...
 
-[ podman machine ssh podman-machine-teleupm-root  ]
+[ podman machine ssh podman-machine-teleupm  ]
 [ sudo vi /etc/containers/registries.conf ]
 [ exit ]
 
@@ -71,7 +71,16 @@ En el apartado URI de redireccionamiento autorizados, añade la ruta estándar q
 
 Guarda los cambios (Tarda de 5 a 10 minutos en aplicarse).
 
-7.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
+7.) Para importar el certificado, en esta demostración se usó chrome.
+
+Importamos el certificado "certs/cert_CA_tfg_tsi.cer" Menú lateral > Configuración > Privacidad
+y seguridad > Seguridad > Gestionar certificados > Instalados por ti", y hacemos click en el 
+botón de "Importar".
+
+De ahí, seleccionamos el certificado mencionado para instalarlo. Cerramos y abrimos chrome
+para que se apliquen los cambios
+
+8.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
 
 ---------------------------------------------------------------------------
 TROUBLESHOOTING
