@@ -31,7 +31,7 @@ Haremos en la cmd de nuevo...
 Ahora, expondremos la interfaz de Jenkins con un túnel con
 el siguiente comando:
 
-[ ngrok http --host-header=jenkins.teleupm.com 80 ]
+[ ngrok http https://localhost:443 --host-header=jenkins.teleupm.com ]
 
 ¡ADVERTENCIA! Esta interfaz la levantaremos solo para la demostración, porque en un entorno
 real esto funcionará con un servidor en línea que no expondrá configuraciones
