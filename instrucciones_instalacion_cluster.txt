@@ -1,10 +1,14 @@
+---------------------------------------------------------------------------
+INSTRUCCIONES ARRANQUE Y REPRODUCCIÓN
+---------------------------------------------------------------------------
+
 1.) Instalamos WSLv2 en nuestra máquina Windows y lo activamos
 
 2.) Instalamos Podman Desktop en windows. Para crear la máquina inicial, es necesario que esta
 cuente con permisos de root, por lo que debemos hacer este ajuste cuando arranquemos la máquina
 por primera vez.
 
-El nombre de la máquina debe ser podman-machine-teleupm-root
+El nombre de la máquina debe ser podman-machine-teleupm
 
 Debemos también marcar las extensiones de Compose y Kubectl para configurarlas y usarlas en
 los siguientes pasos
@@ -68,3 +72,13 @@ En el apartado URI de redireccionamiento autorizados, añade la ruta estándar q
 Guarda los cambios (Tarda de 5 a 10 minutos en aplicarse).
 
 7.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
+
+---------------------------------------------------------------------------
+TROUBLESHOOTING
+---------------------------------------------------------------------------
+
+Si al utilizar el script "reanudar_cluster.bat" no funciona la conexión a npipe,
+ejecutar el fichero "arreglar_npipe.ps1"
+
+Este comportamiento se debe al arranque rápido de Windows, que deja las conexiones
+de Podman colgadas en segundo plano
