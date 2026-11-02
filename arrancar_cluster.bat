@@ -1,9 +1,19 @@
 @echo off
 chcp 65001 >nul
 
+echo.
+echo ========================================================
+echo      ARRANCANDO EL ENTORNO ON-PREMISE
+echo ========================================================
+echo.
+echo Este script creará los contenedores y la infraestructura
+echo local de k0s desde 0.
+echo ¡ADVERTENCIA! Esto recreará todo lo mencionado si
+echo Pulsa CTRL+C si quieres cancelar, o cualquier tecla para continuar.
+pause >nul
+
 rem 1. Levantar los contenedores
 echo [1/8] Levantando contenedores con Podman Compose...
-set DOCKER_HOST=npipe:////./pipe/podman-machine-teleupm-root
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
@@ -165,7 +175,7 @@ echo [8/8] Desplegando gestor web, N8N y backend de Telegram...
 
 type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
-rem type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo ========================================================

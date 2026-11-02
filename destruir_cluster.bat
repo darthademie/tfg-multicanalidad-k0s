@@ -11,9 +11,6 @@ echo volumenes. Se perdera el estado de Jenkins, k0s y ArgoCD.
 echo Pulsa CTRL+C si quieres cancelar, o cualquier tecla para continuar.
 pause >nul
 
-rem 1. Apuntar al socket de la maquina rootful
-set DOCKER_HOST=npipe:////./pipe/podman-machine-teleupm-root
-
 echo.
 echo [1/3] Deteniendo y borrando contenedores y volumenes...
 podman compose down -v

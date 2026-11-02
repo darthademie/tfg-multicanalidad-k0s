@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teleupm-sbt-deployment
+  namespace: apps
+  labels:
+    app: teleupm-sbt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teleupm-sbt
+  template:
+    metadata:
+      labels:
+        app: teleupm-sbt
+    spec:
+      containers:
+      - name: sbt-worker
+        image: darthademie/tfg-multicanalidad-sbt:1.0
+        imagePullPolicy: Always
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
