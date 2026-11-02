@@ -80,14 +80,21 @@ botón de "Importar".
 De ahí, seleccionamos el certificado mencionado para instalarlo. Cerramos y abrimos chrome
 para que se apliquen los cambios
 
-8.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de windows
+8.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de Windows
 
 ---------------------------------------------------------------------------
 TROUBLESHOOTING
 ---------------------------------------------------------------------------
 
-Si al utilizar el script "reanudar_cluster.bat" no funciona la conexión a npipe,
-ejecutar el fichero "arreglar_npipe.ps1"
+Si al utilizar el script "reanudar_cluster.bat" ocurre una de las
+siguientes cosas...
 
-Este comportamiento se debe al arranque rápido de Windows, que deja las conexiones
-de Podman colgadas en segundo plano
+- No funciona la conexión al npipe de Podman
+- K0s pierde el acceso al nodo (NodeNotReady como estado
+de algún Deployment por pérdida de acceso a kubelet),
+o no llegas a las IP de los ingress
+
+Ejecutar el fichero "reestablecer_red_podman.ps1"
+
+Este comportamiento se debe al inicio rápido de Windows, que deja las conexiones
+de Podman colgadas en segundo plano y los procesos de red de Windows pillados (hang up)

@@ -6,6 +6,7 @@ echo ========================================================
 echo      REANUDANDO EL ENTORNO ON-PREMISE (CON DATOS)
 echo ========================================================
 
+echo.
 echo [1/2] Arrancando la maquina virtual de Podman...
 podman machine start podman-machine-teleupm
 
