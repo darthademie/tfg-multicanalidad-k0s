@@ -1,0 +1,17 @@
+Le damos al botón "New app" de arriba
+
+---> General
+- Application Name: tfg-multicanalidad-web (o el nombre del microservicio correspondiente, como tfg-multicanalidad-sbt).
+- Project Name: default
+- Sync Policy: Automatic
+- Sync Options: Marcar obligatoriamente las casillas "Prune resources" (para eliminar en el clúster los recursos que se borren en Git)
+y "Self Heal" (para que ArgoCD sobrescriba cualquier modificación manual que alguien intente hacer directamente con kubectl).
+
+---> Origen de los Manifiestos (Source)
+- Repository URL: URL del repo git en https
+- Revision: main
+- Path: La ruta relativa donde se encuentran los ficheros .yaml de Kubernetes (poner . si están en la raíz del repositorio, o el nombre del directorio, por ejemplo k8s).
+
+---> Destino de Despliegue (Destination)
+- Cluster URL: https://kubernetes.default.svc (URL interna del clúster donde está instalado ArgoCD).
+- Namespace: apps

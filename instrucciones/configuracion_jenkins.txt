@@ -58,6 +58,10 @@ Verification: GitHub enviará un "ping" de prueba. Si todo está bien, aparecer�
 
 --------> Autenticacion para Docker Hub
 
+Generamos un token de Docker Hub en Botón perfil > Account settings > Personal access tokens > Generate new token,
+
+De Ahí le damos a "Generate token" y lo guardamos.
+
 Entra en tu Jenkins ([https://jenkins.teleupm.com](https://jenkins.teleupm.com)). Ve al botón de perfil arriba a la izq.
 Le damos a Credentials > Add credentials > System > Global
 
@@ -69,6 +73,39 @@ Rellena los campos exactamente así:
 "Read, write and delete".
 - ID: dockerhub-darthademie (Crítico: tiene que llamarse exactamente así porque es el nombre que busca el Jenkinsfile).
 - Description: Credenciales de Docker Hub.
+
+--------> Autenticacion para GitHub
+
+Para obtener el token de GitHub, se hace en GitHub > Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token
+y generamos uno nuevo poniendo en los campos...
+
+- Nombre: jenkins-gitops-tfg
+- Expiration: 90 days
+- Repository access: Only select repositories y marcamos...
+
+darthademie/tfg-multicanalidad-mov
+darthademie/tfg-multicanalidad-sbt
+darthademie/tfg-multicanalidad-web
+
+- Repository permissions: Jenkins solo necesita un permiso para hacer clonar, modificar el YAML y hacer push:
+
+Busca "Contents" en el desplegable de "Add permissions" y cambia el desplegable de "Contents"
+de "No access" a "Read and write".
+(Nota: Al activar 'Contents', GitHub habilitará automáticamente 'Metadata' en solo lectura, es normal).
+
+Le damos a generate token y lo guardamos.
+
+Entra en tu Jenkins ([https://jenkins.teleupm.com](https://jenkins.teleupm.com)). Ve al botón de perfil arriba a la izq.
+Le damos a Credentials > Add credentials > System > Global
+
+Rellena los campos exactamente así:
+
+- Kind: Username with password
+- Username: darthademie.
+- Password: Token con acceso de lectura/escritura de GitHub. Lo podemos llamar "GitHub Token" y le debemos dar permisos de
+"Read, write and delete".
+- ID: github-darthademie (Crítico: tiene que llamarse exactamente así porque es el nombre que busca el Jenkinsfile).
+- Description: Credenciales de GitHub.
 
 ---------> Creación del pipeline
 
