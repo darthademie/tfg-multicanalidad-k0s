@@ -226,6 +226,8 @@ rem ############### DESPLIEGUE DE APLICACIONES ###############
 echo.
 echo [10/10] Desplegando gestor web, N8N y backend de Telegram...
 
+rem Estos despliegues son solo para el arranque inicial, una vez ArgoCD está funcionando, las
+rem versiones de estos despliegues se actualizarán con las presentes en los Git del proyecto
 type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
