@@ -86,7 +86,7 @@ botón de "Importar".
 De ahí, seleccionamos el certificado mencionado para instalarlo. Cerramos y abrimos chrome
 para que se apliquen los cambios
 
-8.) Ejecutamos el fichero "arranque_cluster.bat" en una terminal de Windows
+8.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
 
 ---------------------------------------------------------------------------
 TROUBLESHOOTING
