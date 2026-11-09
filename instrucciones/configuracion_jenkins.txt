@@ -122,3 +122,18 @@ Configura el apartado SCM como Git e introduce la URL del repositorio: [https://
 Asegúrate de que en el campo Script Path aparezca solo "Jenkinsfile".
 
 Guarda la configuración y ejecuta la tarea manualmente una vez (haciendo clic en Construir ahora) para que Jenkins descargue y registre el pipeline por primera vez.
+
+3.) Activación de scripts
+
+Existe un script que controla al inicio de cada Jenkinsfile los commit que se llevan a cabo, y
+los que se abortan.
+
+Debemos ejecutar manualmente cualquiera de los pipeline de este proyecto, y buscar en la pestaña
+"Console log" de la build un mensaje con un enlace que dice:
+org.jenkinsci.plugins.scriptsecurity.sandbox.RejectedAccessException: Scripts not permitted to use method [Nombre del método]Administrators can decide whether to approve or reject this signature."
+
+Hacemos click en el enlace y aprobamos. Generamos una segunda ejecución para comprobar que tenemos todo, si no, repetimos
+el proceso
+
+La aprobación de script debe resultar en la pantalla "aprobaciones_necesarias_jenkins.png" que está en esta
+carpeta.
