@@ -1,0 +1,9 @@
+--------> Uso de correo electrónico para N8N
+
+Para los envíos de correo, es muy útil el uso de N8N, para ello,
+el proyecto tiene una cuenta de desarrollo de gmail con las siguientes
+credenciales para N8N (Credenciales de aplicación creadas para ese gmail)...
+
+- Correo: teleupm@gmail.com
+- Password de aplicacion: jsfv csrv okve pgvd
+
