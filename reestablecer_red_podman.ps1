@@ -1,6 +1,7 @@
 # 1. Matar procesos zombie que retienen el Named Pipe
 Stop-Process -Name "win-sshproxy" -Force -ErrorAction SilentlyContinue
 Stop-Process -Name "gvproxy" -Force -ErrorAction SilentlyContinue
+Stop-Process -Name "wslrelay" -Force -ErrorAction SilentlyContinue
 Stop-Process -Name "wsl" -Force -ErrorAction SilentlyContinue
 
 # 2. Forzar el apagado completo del subsistema WSL (limpia pipes del kernel)

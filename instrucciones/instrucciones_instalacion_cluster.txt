@@ -92,6 +92,8 @@ para que se apliquen los cambios
 TROUBLESHOOTING
 ---------------------------------------------------------------------------
 
+--------> Rotura de npipe o NodeNotReady
+
 Si al utilizar el script "reanudar_cluster.bat" ocurre una de las
 siguientes cosas...
 
@@ -100,8 +102,18 @@ siguientes cosas...
 de algún Deployment por pérdida de acceso a kubelet),
 o no llegas a las IP de los ingress
 
-Ejecutar el fichero "reestablecer_red_podman.ps1" sin ejecutar antes "parar_cluster.bat".
+Ejecutar el fichero "parar_cluster.bat" y acto seguido,
+ejecutamos con una Powershell como administrador y lanzamos "reestablecer_red_podman.ps1".
 Con esto, la red se destruye y se recrea por completo
 
 Este comportamiento se debe al inicio rápido de Windows, que deja las conexiones
 de Podman colgadas en segundo plano y los procesos de red de Windows pillados (hang up)
+
+--------> NodeNotReady persistente y Ingress not relayed
+
+A veces, la red interna del k0s y el componente kube-router se quedan totalmente
+corruptos ante un mal cierre. En esos casos, no basta solo con ejecutar el script
+"reestablecer_red_podman.ps1".
+
+Ante esta situación, ejecutar "reestablecer_red_k0s.ps1". Este script borra los ingress
+y los vuelve a regenerar directamente

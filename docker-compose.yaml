@@ -16,6 +16,8 @@ services:
       - k0s_data:/var/lib/k0s
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     restart: unless-stopped
+    # Le da a k0s hasta 60 segundos para apagarse limpiamente
+    stop_grace_period: 60s
 
   # 2. Servidor de Integración Continua (Jenkins)
   jenkins:
@@ -33,6 +35,8 @@ services:
       # seguir los pasos de los pipelines
       - /run/podman/podman.sock:/var/run/docker.sock
     restart: unless-stopped
+    # Da tiempo a la JVM de Jenkins para volcar a disco y cerrar hilos
+    stop_grace_period: 30s
 
 volumes:
   k0s_data:
