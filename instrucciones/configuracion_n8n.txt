@@ -6,4 +6,3 @@ credenciales para N8N (Credenciales de aplicación creadas para ese gmail)...
 
 - Correo: teleupm@gmail.com
 - Password de aplicacion: jsfv csrv okve pgvd
-
