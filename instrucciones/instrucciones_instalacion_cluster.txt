@@ -106,6 +106,8 @@ Ejecutar el fichero "parar_cluster.bat" y acto seguido,
 ejecutamos con una Powershell como administrador y lanzamos "reestablecer_red_podman.ps1".
 Con esto, la red se destruye y se recrea por completo
 
+Si esto no funciona reiniciamos el ordenador. NO LO APAGAMOS; REINICIAMOS!!!
+
 Este comportamiento se debe al inicio rápido de Windows, que deja las conexiones
 de Podman colgadas en segundo plano y los procesos de red de Windows pillados (hang up)
 
