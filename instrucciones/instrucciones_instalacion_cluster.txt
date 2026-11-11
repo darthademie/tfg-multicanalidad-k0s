@@ -88,6 +88,43 @@ para que se apliquen los cambios
 
 8.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
 
+9.) Configuración de ngrok
+
+Se usará ngrok para los webhook de Jenkins y N8N. Se decidió el uso
+de este software para simplificar la demostración de las comunicaciones
+reales que existirían entre los servicios de este ecosistema y la web
+pública
+
+Por las limitaciones que ofrece la cuenta gratuita de N8N, solo
+podemos levantar un túnel por usuario gratuito, por lo que
+para las demostraciones del TFG solo se tendrá activo un túnel por
+situación
+
+Esto podría remediarse usando soluciones más complejas como Cloudflare Tunnels,
+pero que no entran dentro del alcance demostrativo de este trabajo
+
+Para instalar ngrok, haremos...
+
+[ winget install --id Ngrok.Ngrok -e ]
+
+Creamos cuenta en Ngrok, y obtenemos nuestro token (Elegimos share-localhost
+como modo de uso)
+
+Metemos ese token en la cmd 
+
+[ ngrok config add-authtoken ******... ]
+
+A partir de ahora, hay que añadir el ngrok a configuraciones de exclusión.
+Esta herramienta genera un túnel al puerto deseado de la máquina local
+para exponer un endpoint público en la página de ngrok
+
+Esto es útil para que funcionen los webhooks de manera local con Jenkins y N8N
+
+Ahora, actualizaremos ngrok para que empiece a funcionar.
+Haremos en la cmd de nuevo...
+
+[ ngrok update ]
+
 ---------------------------------------------------------------------------
 TROUBLESHOOTING
 ---------------------------------------------------------------------------

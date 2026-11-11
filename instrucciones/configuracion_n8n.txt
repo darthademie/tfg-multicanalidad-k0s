@@ -1,3 +1,22 @@
+---------------------------------------------------------------------------
+CONFIGURACION DE N8N
+---------------------------------------------------------------------------
+
+1.) Configuracion N8N: ngrok para webhooks
+
+------> ngrok
+
+Expondremos el trigger por webhook usado en los flujos
+de N8N con un túnel con el siguiente comando:
+
+[ ngrok http https://localhost:443 --host-header=teleupm.com ]
+
+¡ADVERTENCIA! Esta interfaz la levantaremos solo para la demostración, porque en un entorno
+real esto funcionará con un servidor en línea que no expondrá configuraciones
+hacia un ordenador personal, como lo es en este caso
+
+2.) Credenciales para correo
+
 --------> Uso de correo electrónico para N8N
 
 Para los envíos de correo, es muy útil el uso de N8N, para ello,

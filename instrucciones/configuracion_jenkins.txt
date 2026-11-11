@@ -4,31 +4,7 @@ CONFIGURACION DE JENKINS
 
 1.) Configuracion Jenkins: ngrok para webhooks
 
---------> ngrok
-
-Se usará ngrok para los webhook de Jenkins
-
-[ winget install --id Ngrok.Ngrok -e ]
-
-Creamos cuenta en Ngrok, y obtenemos nuestro token (Elegimos share-localhost
-como modo de uso)
-
-Metemos ese token en la cmd 
-
-[ ngrok config add-authtoken ******... ]
-
-A partir de ahora, hay que añadir el ngrok a configuraciones de exclusión.
-Esta herramienta genera un túnel al puerto deseado de la máquina local
-para exponer un endpoint público en la página de ngrok
-
-Esto es útil para que funcionen los webhooks de manera local con Jenkins
-
-Ahora, actualizaremos ngrok para que empiece a funcionar.
-Haremos en la cmd de nuevo...
-
-[ ngrok update ]
-
-Ahora, expondremos la interfaz de Jenkins con un túnel con
+Expondremos la interfaz de Jenkins con un túnel con
 el siguiente comando:
 
 [ ngrok http https://localhost:443 --host-header=jenkins.teleupm.com ]

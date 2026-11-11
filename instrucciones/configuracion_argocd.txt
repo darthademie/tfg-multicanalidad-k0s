@@ -1,4 +1,9 @@
-Le damos al botón "New app" de arriba
+---------------------------------------------------------------------------
+CONFIGURACION DE ARGO CD
+---------------------------------------------------------------------------
+
+Le damos al botón "New app" de arriba para crear las dos apps necesarias
+(tfg_multicanalidad_web y tfg-multicanalidad-sbt)
 
 ---> General
 - Application Name: tfg-multicanalidad-web (o el nombre del microservicio correspondiente, como tfg-multicanalidad-sbt).
