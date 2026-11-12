@@ -211,15 +211,19 @@ echo [9/10] Inyectando claves de Firebase y Telegram en Kubernetes...
 rem 1. Enviar el contenido de los ficheros locales a la carpeta temporal de k0s
 podman cp keys\serviceAccountKey.json k0s-cluster:/tmp/serviceAccountKey.json
 podman cp keys\telegram_token.txt k0s-cluster:/tmp/telegram_token.txt
+podman cp analytics\api_key.txt k0s-cluster:/tmp/api_key.txt
+podman cp analytics\measurement_id.txt k0s-cluster:/tmp/measurement_id.txt
 
-rem 2. Borrar el secret si ya existiera (para permitir actualizaciones limpias)
+rem 2. Borrar los secrets si ya existieran (para permitir actualizaciones limpias)
 podman exec k0s-cluster k0s kubectl delete secret teleupm-keys-secret -n apps 2>nul
+podman exec k0s-cluster k0s kubectl delete secret teleupm-analytics-secret -n apps 2>nul
 
 rem 3. Empaquetar ambos ficheros en un unico Secret de Kubernetes
 podman exec k0s-cluster k0s kubectl create secret generic teleupm-keys-secret --from-file=serviceAccountKey.json=/tmp/serviceAccountKey.json --from-file=telegram_token.txt=/tmp/telegram_token.txt -n apps
+podman exec k0s-cluster k0s kubectl create secret generic teleupm-analytics-secret --from-literal=GA_API_SECRET="$(podman exec k0s-cluster cat /tmp/api_key.txt)" --from-literal=GA_MEASUREMENT_ID="$(podman exec k0s-cluster cat /tmp/measurement_id.txt)" -n apps
 
 rem 4. Limpiar los ficheros temporales por seguridad
-podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_token.txt"
+podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_token.txt /tmp/api_key.txt /tmp/measurement_id.txt"
 
 rem ############### DESPLIEGUE DE APLICACIONES ###############
 

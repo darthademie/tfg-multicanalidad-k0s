@@ -22,6 +22,9 @@ spec:
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
+        envFrom:
+        - secretRef:
+            name: teleupm-analytics-secret
         volumeMounts:
         - name: keys-volume
           mountPath: /app/keys

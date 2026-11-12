@@ -1,3 +1,4 @@
 ﻿argocd-ingress.yaml
 jenkins-ingress.yaml
 keys
+analytics
