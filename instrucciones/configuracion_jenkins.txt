@@ -113,3 +113,17 @@ el proceso
 
 La aprobación de script debe resultar en la pantalla "aprobaciones_necesarias_jenkins.png" que está en esta
 carpeta.
+
+
+---------------------------------------------------------------------------
+TROUBLESHOOTING
+---------------------------------------------------------------------------
+
+--------> El clúster funciona pero Jenkins da 404
+
+A veces, la red interna del k0s y el componente kube-router se quedan totalmente
+corruptos ante un mal cierre. Con ello, puede reiniciarse la red de Podman y hacer
+que se reasigne una IP estática diferente para el contenedor de Jenkins.
+
+Ante esta situación, ejecutar "reestablecer_red_jenkins.bat". Este script le devuelve
+la IP de Jenkins asignada por la red de Podman al clúster de k0s
