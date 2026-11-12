@@ -114,7 +114,6 @@ el proceso
 La aprobación de script debe resultar en la pantalla "aprobaciones_necesarias_jenkins.png" que está en esta
 carpeta.
 
-
 ---------------------------------------------------------------------------
 TROUBLESHOOTING
 ---------------------------------------------------------------------------
