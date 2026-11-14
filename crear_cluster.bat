@@ -3,7 +3,7 @@ chcp 65001 >nul
 
 echo.
 echo ========================================================
-echo            ARRANCANDO EL ENTORNO ON-PREMISE
+echo             ARRANCANDO EL ENTORNO ON-PREMISE
 echo ========================================================
 echo.
 echo Este script creará los contenedores y la infraestructura
@@ -14,13 +14,13 @@ pause >nul
 
 rem 1. Levantar los contenedores
 echo.
-echo [1/10] Levantando contenedores con Podman Compose...
+echo [1/11] Levantando contenedores con Podman Compose...
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
 
 echo.
-echo [2/10] Instalando el cliente de Docker dentro de Jenkins...
+echo [2/11] Instalando el cliente de Docker dentro de Jenkins...
 podman exec -u root jenkins-local bash -c "apt-get update && apt-get install -y docker.io"
 
 echo Esperando a que Jenkins genere la contrasena inicial...
@@ -35,19 +35,19 @@ echo ========================================================
 rem ############### ESPERA DE K0S E INGRESS ###############
 
 echo.
-echo [3/10] Esperando a que el cluster k0s termine de arrancar...
+echo [3/11] Esperando a que el cluster k0s termine de arrancar...
 podman exec k0s-cluster sh -c "until k0s kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
 podman exec k0s-cluster k0s kubectl wait --for=condition=Ready node --all --timeout=120s
 
 echo.
-echo [4/10] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
+echo [4/11] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
 podman exec k0s-cluster k0s kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/baremetal/deploy.yaml
 podman exec k0s-cluster sh -c "k0s kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\": 30080}, {\"op\": \"replace\", \"path\": \"/spec/ports/1/nodePort\", \"value\": 30443}]'"
 
 rem ############### CONFIGURACION DE ARGOCD ###############
 
 echo.
-echo [5/10] Instalando y configurando ArgoCD...
+echo [5/11] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -70,14 +70,15 @@ echo ========================================================
 rem ############### CONFIGURACION DE NAMESPACE DE APLICACIONES ###############
 
 echo.
-echo [6/10] Creando namespace para aplicaciones
+echo [6/11] Creando namespaces para aplicaciones y monitorizacion...
 
 podman exec k0s-cluster k0s kubectl create namespace apps
+podman exec k0s-cluster k0s kubectl create namespace monitoring
 
 rem ############### CONFIGURACION DE CERTIFICADOS INGRESS ###############
 
 echo.
-echo [7/10] Inyectando certificado HTTPS para el Ingress...
+echo [7/11] Inyectando certificado HTTPS para el Ingress...
 
 rem 1. Copiar los archivos binarios puros al contenedor temporal
 podman cp certs\tls.crt k0s-cluster:/tmp/tls.crt
@@ -95,13 +96,17 @@ rem 2c. Borrar y crear en el namespace "argocd" (Para ArgoCD)
 podman exec k0s-cluster k0s kubectl delete secret teleupm-tls-secret -n argocd 2>nul
 podman exec k0s-cluster k0s kubectl create secret tls teleupm-tls-secret --cert=/tmp/tls.crt --key=/tmp/tls.key -n argocd
 
+rem 2d. Borrar y crear en el namespace "monitoring" (Para Grafana)
+podman exec k0s-cluster k0s kubectl delete secret teleupm-tls-secret -n monitoring 2>nul
+podman exec k0s-cluster k0s kubectl create secret tls teleupm-tls-secret --cert=/tmp/tls.crt --key=/tmp/tls.key -n monitoring
+
 rem 3. Limpiar
 podman exec k0s-cluster sh -c "rm /tmp/tls.crt /tmp/tls.key"
 
 rem ############### ENRUTAR JENKINS/ARGOCD POR INGRESS ###############
 
 echo.
-echo [8/10] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
+echo [8/11] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
 echo y ArgoCD (https://argocd.teleupm.com)...
 
 echo.
@@ -206,7 +211,7 @@ echo                   number: 80
 type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
-echo [9/10] Inyectando claves de Firebase y Telegram en Kubernetes...
+echo [9/11] Inyectando claves de Firebase y Telegram en Kubernetes...
 
 rem 1. Enviar el contenido de los ficheros locales a la carpeta temporal de k0s
 podman cp keys\serviceAccountKey.json k0s-cluster:/tmp/serviceAccountKey.json
@@ -228,7 +233,7 @@ podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_toke
 rem ############### DESPLIEGUE DE APLICACIONES ###############
 
 echo.
-echo [10/10] Desplegando gestor web, N8N y backend de Telegram...
+echo [10/11] Desplegando gestor web, N8N y backend de Telegram...
 
 rem Estos despliegues son solo para el arranque inicial, una vez ArgoCD está funcionando, las
 rem versiones de estos despliegues se actualizarán con las presentes en los Git del proyecto
@@ -236,11 +241,85 @@ type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kube
 type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
+rem ############### DESPLIEGUE DE GRAFANA ###############
+
+echo.
+echo [11/11] Instalando y enrutando Grafana (https://grafana.teleupm.com) (User/Pass: admin/admin)...
+
+rem Generamos el YAML de Grafana localmente y lo inyectamos (-i) al clúster
+(
+echo apiVersion: apps/v1
+echo kind: Deployment
+echo metadata:
+echo   name: grafana
+echo   namespace: monitoring
+echo spec:
+echo   replicas: 1
+echo   selector:
+echo     matchLabels:
+echo       app: grafana
+echo   template:
+echo     metadata:
+echo       labels:
+echo         app: grafana
+echo     spec:
+echo       containers:
+echo         - name: grafana
+echo           image: grafana/grafana:latest
+echo           ports:
+echo             - containerPort: 3000
+echo ---
+echo apiVersion: v1
+echo kind: Service
+echo metadata:
+echo   name: grafana-svc
+echo   namespace: monitoring
+echo spec:
+echo   type: ClusterIP
+echo   selector:
+echo     app: grafana
+echo   ports:
+echo     - port: 80
+echo       targetPort: 3000
+echo ---
+echo apiVersion: networking.k8s.io/v1
+echo kind: Ingress
+echo metadata:
+echo   name: grafana-ingress
+echo   namespace: monitoring
+echo   annotations:
+echo     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+echo     nginx.ingress.kubernetes.io/hsts: "true"
+echo     nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+echo     nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
+echo spec:
+echo   ingressClassName: nginx
+echo   tls:
+echo     - hosts:
+echo         - grafana.teleupm.com
+echo       secretName: teleupm-tls-secret
+echo   rules:
+echo     - host: grafana.teleupm.com
+echo       http:
+echo         paths:
+echo           - path: /
+echo             pathType: Prefix
+echo             backend:
+echo               service:
+echo                 name: grafana-svc
+echo                 port:
+echo                   number: 80
+) > grafana-deploy.yaml
+
+type grafana-deploy.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+
 echo.
 echo ========================================================
 echo Todo listo!! Ya puedes probar el acceso al cluster
-echo Jenkins: https://jenkins.teleupm.com
-echo Argo CD: https://argocd.teleupm.com
+echo Jenkins:      https://jenkins.teleupm.com
+echo Argo CD:      https://argocd.teleupm.com
+echo Grafana:      https://grafana.teleupm.com
 echo Frontend web: https://teleupm.com
 echo Flujos N8N:   https://teleupm.com/flujos
 echo ========================================================
@@ -248,7 +327,7 @@ echo.
 
 echo ========================================================
 echo Ten en cuenta que algunas funcionalidades como N8N
-echo son más pesadas y pueden tardar en arrancar.
+echo o Grafana son mas pesadas y pueden tardar en arrancar.
 echo.
 echo Espera 1-5 minutos antes de probar para no dar por
 echo fallido el despliegue

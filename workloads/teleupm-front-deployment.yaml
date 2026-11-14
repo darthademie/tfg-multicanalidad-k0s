@@ -4,7 +4,7 @@ metadata:
   name: teleupm-front-deployment
   namespace: apps
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: teleupm-front
@@ -19,6 +19,14 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
+          # OBLIGATORIO PARA EL HPA: Definir cuánto consume el contenedor
+          resources:
+            requests:
+              cpu: "50m"       # 5% de un núcleo de CPU
+              memory: "64Mi"   # 64 MB de RAM
+            limits:
+              cpu: "200m"      # Máximo 20% de un núcleo
+              memory: "128Mi"  # Máximo 128 MB de RAM
 ---
 apiVersion: v1
 kind: Service
@@ -70,3 +78,24 @@ spec:
                 name: teleupm-front-svc
                 port:
                   number: 80
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: teleupm-front-hpa
+  namespace: apps
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: teleupm-front-deployment
+  minReplicas: 2
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75

@@ -46,6 +46,7 @@ política de ejecución de scripts de Powershell para poder ejecutarlo.
 como administrador para añadirle las siguientes rutas...
 
 127.0.0.1  teleupm.com
+127.0.0.1  grafana.teleupm.com
 127.0.0.1  argocd.teleupm.com
 127.0.0.1  jenkins.teleupm.com
 
