@@ -1,0 +1,110 @@
+{
+  "dispositivos": {
+    "airpods_pro_2": "Apple AirPods Pro (2ª Gen)",
+    "asus_rt_ax88u": "ASUS RT-AX88U Pro",
+    "dell_xps_15": "Dell XPS 15",
+    "fritzbox_7590": "AVM FRITZ!Box 7590 AX",
+    "google_pixel_8_pro": "Google Pixel 8 Pro",
+    "hp_spectre_x360": "HP Spectre x360",
+    "iphone_15_pro": "iPhone 15 Pro",
+    "lenovo_thinkpad_x1": "Lenovo ThinkPad X1 Carbon",
+    "logitech_mx_master_3s": "Logitech MX Master 3S",
+    "macbook_pro_m3": "MacBook Pro 14 (M3)",
+    "netgear_orbi_rbk852": "Netgear Orbi RBK852",
+    "pocophone_f6": "Pocophone F6",
+    "samsung_s24_ultra": "Samsung Galaxy S24 Ultra",
+    "sony_wh1000xm5": "Sony WH-1000XM5",
+    "tp_link_deco_x60": "TP-Link Deco X60 Wi-Fi 6"
+  },
+  "ofertas_disponibles": {
+    "promo_01": {
+      "discount": 50,
+      "origin": "iphone_15_pro",
+      "target": "movil_infinita",
+      "type": "plan"
+    },
+    "promo_02": {
+      "discount": 25,
+      "origin": "pocophone_f6",
+      "target": "movil_basica_20",
+      "type": "plan"
+    },
+    "promo_03": {
+      "discount": 60,
+      "origin": "tp_link_deco_x60",
+      "target": "fibra_300",
+      "type": "plan"
+    },
+    "promo_04": {
+      "discount": 15,
+      "origin": "movil_basica_20",
+      "target": "sony_wh1000xm5",
+      "type": "device"
+    },
+    "promo_05": {
+      "discount": 40,
+      "origin": "macbook_pro_m3",
+      "target": "logitech_mx_master_3s",
+      "type": "device"
+    },
+    "promo_06": {
+      "discount": 30,
+      "origin": "pack_conecta_1g",
+      "target": "google_pixel_8_pro",
+      "type": "device"
+    },
+    "promo_07": {
+      "discount": 45,
+      "origin": "asus_rt_ax88u",
+      "target": "pack_total_ficcion",
+      "type": "plan"
+    },
+    "promo_08": {
+      "discount": 20,
+      "origin": "dell_xps_15",
+      "target": "pack_conecta_1g",
+      "type": "plan"
+    },
+    "promo_09": {
+      "discount": 55,
+      "origin": "fibra_300",
+      "target": "fritzbox_7590",
+      "type": "device"
+    },
+    "promo_10": {
+      "discount": 10,
+      "origin": "samsung_s24_ultra",
+      "target": "airpods_pro_2",
+      "type": "device"
+    }
+  },
+  "tarifas": {
+    "fibra_300": {
+      "descripcion": "Conexión simétrica de fibra óptica de 300 Mbps para el hogar. Incluye router Wi-Fi 6 avanzado y teléfono fijo.",
+      "nombre": "Fibra 300 Mbps"
+    },
+    "movil_basica_20": {
+      "descripcion": "Llamadas ilimitadas y 20GB de datos a máxima velocidad 5G. Ideal para uso diario y redes sociales.",
+      "nombre": "Tarifa Móvil 20GB"
+    },
+    "movil_infinita": {
+      "descripcion": "Datos y llamadas ilimitadas con conectividad 5G+ sin restricciones. Para los que no quieren preocuparse por los gigas.",
+      "nombre": "Tarifa Móvil Infinita"
+    },
+    "pack_conecta_1g": {
+      "descripcion": "La conexión definitiva. Fibra óptica simétrica de 1 Gbps y 2 líneas móviles con gigas ilimitados a compartir.",
+      "nombre": "Pack Conecta (Fibra 1Gbps + Móvil)"
+    },
+    "pack_total_ficcion": {
+      "descripcion": "Fibra 1 Gbps, 2 líneas móviles ilimitadas y decodificador 4K con más de 80 canales, cine, series y paquete de deportes.",
+      "nombre": "Pack Total + Ficción"
+    },
+    "prepago_renovable_50": {
+      "descripcion": "Bono de 50GB de datos y llamadas nacionales ilimitadas. Se renueva automáticamente cada 28 días, sin contratos ni permanencias.",
+      "nombre": "Tarifa Prepago Plus 50GB"
+    }
+  },
+  "telegram": {
+    "clave_a_mano": "valor_a_mano"
+  }
+}

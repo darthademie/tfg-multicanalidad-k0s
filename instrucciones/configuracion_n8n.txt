@@ -25,3 +25,41 @@ credenciales para N8N (Credenciales de aplicación creadas para ese gmail)...
 
 - Correo: teleupm@gmail.com
 - Password de aplicacion: jsfv csrv okve pgvd
+
+3.) Configuración inicial de la cuenta de N8N
+
+--------> Registro y licencia comunitaria
+
+La primera vez que arranques N8N y accedas a su interfaz web, el sistema te pedirá configurar la cuenta de propietario (Owner). Debes seguir estos pasos exactos:
+
+Introduce tus datos básicos para crear el usuario administrador.
+
+Cuando el asistente te pregunte por el uso que le vas a dar a la herramienta, debes seleccionar obligatoriamente que la cuenta NO es para trabajo (uso personal / not for work).
+
+A continuación, N8N te ofrecerá activar la licencia gratuita comunitaria. Introduce tu dirección de correo electrónico cuando te lo solicite.
+
+Revisa tu bandeja de entrada, sigue las instrucciones del correo que te enviará N8N para verificar la cuenta y finaliza el proceso para que la licencia gratis quede aplicada y la interfaz desbloqueada.
+
+4.) Importación y activación del flujo de TeleUPM
+
+--------> Despliegue del archivo JSON
+
+Una vez dentro del lienzo (canvas) principal de N8N:
+
+Navega en los archivos de este proyecto hasta encontrar la carpeta llamada n8n.
+
+Localiza el fichero email_teleupm.json.
+
+Haz clic sobre el archivo y arrástralo directamente hacia el centro de la interfaz gráfica de N8N en tu navegador. El flujo con todos los nodos (Webhook, condicionales y Gmail) se dibujará automáticamente.
+
+Para que N8N empiece a escuchar los eventos de Firebase y enviar los correos, dirígete a la esquina superior derecha de la pantalla y activa el interruptor (toggle) o pulsa en "Publish", poniéndole el nombre deseado a la versión, para que el flujo pase a estado "Active".
+
+5.) Monitorización y depuración
+
+--------> Pestaña Executions
+
+Para comprobar que los correos se están enviando correctamente o investigar por qué ha fallado un envío, no verás los eventos en el lienzo central mientras el flujo está activo en producción.
+
+Dirígete al menú lateral izquierdo y haz clic en la pestaña "Executions".
+
+Allí podrás ver el historial completo de las ejecuciones realizadas en tiempo real, revisar qué JSON entró por el Webhook y comprobar qué respuesta devolvió el servidor de correo en cada paso.
