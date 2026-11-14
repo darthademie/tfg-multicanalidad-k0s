@@ -1,0 +1,319 @@
+{
+  "name": "email_teleupm",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-webhook",
+        "options": {}
+      },
+      "id": "2e8f53ec-6553-4d8a-8cf6-6979b6301b84",
+      "name": "Webhook (Entrada)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        16
+      ],
+      "webhookId": "08d8f515-b635-46d1-9c45-716be0d014b9"
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "Te echamos de menos (y te traemos una oferta irrechazable) 🚀",
+        "text": "=Hola, {{ $json.body.name }}:\n\nDecir adiós nunca es fácil. Entendemos perfectamente que hayas decidido cancelar tu tarifa, pero somos de los que piensan que las segundas partes a veces son mucho mejores.\n\nQueremos darte un buen motivo para replanteártelo: si decides volver a casa, te aplicaremos un 40% de descuento directo en tu tarifa. Toda la velocidad y cobertura de siempre, pero a un precio imbatible.\n\nOjalá nuestros caminos se vuelvan a cruzar muy pronto.\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "d70d6e8e-90a4-4247-8d55-07ba7d11f123",
+      "name": "Gmail (Tarifa cancelada)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        640,
+        48
+      ],
+      "webhookId": "e1dff56f-8e42-40bc-a4c8-8c74c9380b58",
+      "retryOnFail": true,
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "Tenemos un as en la manga para ti 🎁",
+        "text": "=Hola, {{ $json.body.name }}:\n\nHemos visto que nuestra última propuesta no te ha terminado de encajar. ¡Cero dramas! Sabemos que cada persona tiene sus propios gustos y necesidades, y no siempre acertamos a la primera.\n\nAun así, no queríamos dejar la conversación aquí. Como agradecimiento por tu tiempo, te regalamos un 20% de descuento directo en todo nuestro catálogo.\n\nUsa el código VUELTA20 en tu próxima compra y llévate exactamente lo que estás buscando. Sin letras pequeñas y a tu ritmo.\n\n¡Nos vemos pronto!\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "aa255242-f5fe-4678-9437-3e86338fe30a",
+      "name": "Gmail (Tarifa rechazada)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        640,
+        256
+      ],
+      "webhookId": "d89e824e-4b4e-4a6a-bfdb-01b10309cb9b",
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "Tenemos algo diferente para ti ✨",
+        "text": "=Hola, {{ $json.body.name }}:\n\nHemos visto que nuestra última propuesta en Telegram no ha encajado del todo con lo que estabas buscando. ¡No pasa nada!\n\nEn TeleUPM sabemos que cada cliente necesita algo a su medida, y no siempre damos en el clavo a la primera. Para que puedas explorar otras opciones sin compromiso, te hemos activado un código especial.\n\nUsa DESCUBRE20 en nuestra web y llévate un 20% de descuento directo en cualquier producto del catálogo (dispositivos y accesorios incluidos).\n\nEstamos aquí para lo que necesites.\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "4686bfe9-6eb1-4ca2-8f7d-6d3be82164fe",
+      "name": "Gmail (Oferta cancelada)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        640,
+        448
+      ],
+      "webhookId": "e1dff56f-8e42-40bc-a4c8-8c74c9380b58",
+      "retryOnFail": true,
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "Aún estás a tiempo (y con un descuento mejorado) 🔝",
+        "text": "=Hola, {{ $json.body.name }}:\n\nHemos visto que al final has decidido no darle al botón de aceptar. Entendemos que a veces surgen dudas en el último momento o simplemente necesitas darle una vuelta más.\n\nComo habías llegado hasta el último paso, no queríamos que te fueras con las manos vacías. Si el problema era el precio, te lo ponemos fácil: si decides retomar tu oferta ahora mismo, te aplicaremos un 40% de descuento directo adicional sobre tu oferta.\n\nSi quieres aprovecharlo o si tienes alguna pregunta que te frene, solo tienes que contestar a este correo y nos pondremos con ello.\n\nEsperamos verte pronto por aquí.\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "fb54f726-f98e-4440-88fd-084043056007",
+      "name": "Gmail (Envío rechazado)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        640,
+        656
+      ],
+      "webhookId": "d89e824e-4b4e-4a6a-bfdb-01b10309cb9b",
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "¡Bienvenido a TeleUPM! 🎉",
+        "text": "¡Hola!\n\n¡Qué alegría tenerte con nosotros! Tu cuenta de TeleUPM ha sido creada con éxito y ya formas parte de nuestra comunidad.\n\nA partir de ahora, tienes a tu disposición todas nuestras herramientas para gestionar tus líneas, pedir nuevos dispositivos y descubrir tarifas que se adaptan a tu ritmo de vida. Nuestro objetivo es que no te tengas que preocupar por la conexión, de eso nos encargamos nosotros.\n\nSi necesitas ayuda para dar tus primeros pasos, no dudes en responder a este correo.\n\n¡Nos vemos dentro!\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "e6201ab7-92ac-42c3-99f3-0d068cd145c6",
+      "name": "Gmail (Bienvenida)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -192
+      ],
+      "webhookId": "e1dff56f-8e42-40bc-a4c8-8c74c9380b58",
+      "retryOnFail": true,
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "teleupm@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
+        "subject": "Tu cuenta de TeleUPM ha sido eliminada",
+        "text": "Hola,\n\nTe confirmamos que hemos procesado tu solicitud y tu cuenta de TeleUPM ha sido eliminada por completo de nuestros sistemas, incluyendo todos tus datos y configuraciones.\n\nNos da mucha pena verte marchar, pero sabemos que las necesidades cambian. Si en algún momento decides volver, aquí seguiremos con los brazos abiertos y las mejores ofertas esperándote.\n\nGracias por el tiempo que has compartido con nosotros. ¡Te deseamos lo mejor!\n\nUn saludo,\nEl equipo de TeleUPM.",
+        "options": {}
+      },
+      "id": "4f27c3db-66ae-4b1a-917d-288469200bda",
+      "name": "Gmail (Despedida)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        336,
+        0
+      ],
+      "webhookId": "d89e824e-4b4e-4a6a-bfdb-01b10309cb9b",
+      "credentials": {
+        "smtp": {
+          "id": "ZCIaVBnRNWOTCs8l",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.code }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "registro_usuario"
+            },
+            {
+              "value2": "cuenta_eliminada",
+              "output": 1
+            }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "id": "7ead34dd-4fdc-4b23-aa47-a8df3a0039e7",
+      "name": "Enrutador (Switch) 1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.code }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "tarifa_activa_cancelada"
+            },
+            {
+              "value2": "tarifa_noactiva_cancelada",
+              "output": 1
+            },
+            {
+              "value2": "oferta_rechazada_inicio",
+              "output": 2
+            },
+            {
+              "value2": "oferta_cancelada_final",
+              "output": 3
+            }
+          ]
+        },
+        "fallbackOutput": "={{ -1 }}"
+      },
+      "id": "120b4847-ce81-49d0-8076-a6352bdb1e3b",
+      "name": "Enrutador (Switch) 2",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        336,
+        288
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook (Entrada)": {
+      "main": [
+        [
+          {
+            "node": "Enrutador (Switch) 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador (Switch) 1": {
+      "main": [
+        [
+          {
+            "node": "Gmail (Bienvenida)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail (Despedida)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Enrutador (Switch) 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutador (Switch) 2": {
+      "main": [
+        [
+          {
+            "node": "Gmail (Tarifa cancelada)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail (Tarifa rechazada)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail (Oferta cancelada)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail (Envío rechazado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "024bb03a-8bca-440a-b555-0041438cabaa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c678f78145377b8c5b1ee64e44fa8a324126c0a9172e999ecd2d0c36224aaa83"
+  },
+  "nodeGroups": [],
+  "id": "8KN0aG2c0PR9doDt",
+  "tags": []
+}
