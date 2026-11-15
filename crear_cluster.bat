@@ -176,39 +176,7 @@ echo                   number: 80
 
 type jenkins-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
-rem Generamos el YAML de ArgoCD localmente y lo inyectamos (-i) al clúster
-(
-echo apiVersion: networking.k8s.io/v1
-echo kind: Ingress
-echo metadata:
-echo   name: argocd-ingress
-echo   namespace: argocd
-echo   annotations:
-echo     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-echo     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-echo     nginx.ingress.kubernetes.io/hsts: "true"
-echo     nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
-echo     nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
-echo spec:
-echo   ingressClassName: nginx
-echo   tls:
-echo     - hosts:
-echo         - argocd.teleupm.com
-echo       secretName: teleupm-tls-secret
-echo   rules:
-echo     - host: argocd.teleupm.com
-echo       http:
-echo         paths:
-echo           - path: /
-echo             pathType: Prefix
-echo             backend:
-echo               service:
-echo                 name: argocd-server
-echo                 port:
-echo                   number: 80
-) > argocd-ingress.yaml
-
-type argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo [9/11] Inyectando claves de Firebase y Telegram en Kubernetes...
@@ -237,82 +205,17 @@ echo [10/11] Desplegando gestor web, N8N y backend de Telegram...
 
 rem Estos despliegues son solo para el arranque inicial, una vez ArgoCD está funcionando, las
 rem versiones de estos despliegues se actualizarán con las presentes en los Git del proyecto
-type workloads\teleupm-n8n-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
-type workloads\teleupm-front-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-n8n-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-front-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
-rem ############### DESPLIEGUE DE GRAFANA ###############
+rem ############### DESPLIEGUE DE GRAFANA Y PROMETHEUS ###############
 
 echo.
-echo [11/11] Instalando y enrutando Grafana (https://grafana.teleupm.com) (User/Pass: admin/admin)...
+echo [11/11] Instalando Prometheus/Grafana y enrutando Grafana (https://grafana.teleupm.com) (User/Pass: admin/admin)...
 
-rem Generamos el YAML de Grafana localmente y lo inyectamos (-i) al clúster
-(
-echo apiVersion: apps/v1
-echo kind: Deployment
-echo metadata:
-echo   name: grafana
-echo   namespace: monitoring
-echo spec:
-echo   replicas: 1
-echo   selector:
-echo     matchLabels:
-echo       app: grafana
-echo   template:
-echo     metadata:
-echo       labels:
-echo         app: grafana
-echo     spec:
-echo       containers:
-echo         - name: grafana
-echo           image: grafana/grafana:latest
-echo           ports:
-echo             - containerPort: 3000
-echo ---
-echo apiVersion: v1
-echo kind: Service
-echo metadata:
-echo   name: grafana-svc
-echo   namespace: monitoring
-echo spec:
-echo   type: ClusterIP
-echo   selector:
-echo     app: grafana
-echo   ports:
-echo     - port: 80
-echo       targetPort: 3000
-echo ---
-echo apiVersion: networking.k8s.io/v1
-echo kind: Ingress
-echo metadata:
-echo   name: grafana-ingress
-echo   namespace: monitoring
-echo   annotations:
-echo     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-echo     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-echo     nginx.ingress.kubernetes.io/hsts: "true"
-echo     nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
-echo     nginx.ingress.kubernetes.io/hsts-max-age: "31536000"
-echo spec:
-echo   ingressClassName: nginx
-echo   tls:
-echo     - hosts:
-echo         - grafana.teleupm.com
-echo       secretName: teleupm-tls-secret
-echo   rules:
-echo     - host: grafana.teleupm.com
-echo       http:
-echo         paths:
-echo           - path: /
-echo             pathType: Prefix
-echo             backend:
-echo               service:
-echo                 name: grafana-svc
-echo                 port:
-echo                   number: 80
-) > grafana-deploy.yaml
-
-type grafana-deploy.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-prometheus-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+type workloads\teleupm-grafana-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo ========================================================

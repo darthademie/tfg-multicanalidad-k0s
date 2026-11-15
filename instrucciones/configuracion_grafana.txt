@@ -1,0 +1,44 @@
+---------------------------------------------------------------------------
+CONFIGURACION DE GRAFANA
+---------------------------------------------------------------------------
+
+1.) Configuración de la cuenta
+
+------> Login inicial
+
+La primera vez que accedas a Grafana, deberás introducir las credenciales genéricas para acceder a la interfaz.
+
+User: admin
+Password: admin
+
+A continuación, la plataforma te pedirá que cambies esta contraseña inicial por una segura de tu elección para continuar.
+
+2.) Conexión de métricas (Data Source)
+
+--------> Configurar Prometheus
+
+Grafana solo pinta los gráficos, por lo que necesita saber dónde está Prometheus recopilando los datos reales de los contenedores de Kubernetes.
+
+Dirígete al panel lateral izquierdo de Grafana y haz clic en "Connections" -> "Data sources".
+
+Pulsa sobre el botón azul "Add data source" y selecciona "Prometheus".
+
+En la caja de texto "Prometheus server URL", introduce la ruta interna del clúster donde escucha el servicio que creamos: [http://prometheus-svc.monitoring.svc.cluster.local:9090](http://prometheus-svc.monitoring.svc.cluster.local:9090)
+
+Baja hasta el final de la página y pulsa en "Save & test". Debería aparecerte un mensaje verde indicando "Data source is working".
+
+3.) Importación del Dashboard de Kubernetes
+
+--------> Despliegue de paneles comunitarios
+
+Para visualizar el uso de CPU, RAM, red y estado de todos los pods del clúster (incluyendo la web de TeleUPM, N8N, etc.), utilizaremos un dashboard preconfigurado por la comunidad.
+
+En el menú lateral izquierdo, haz clic en el icono del símbolo más (+) o "Dashboards" y selecciona "Import".
+
+En la casilla "Import via grafana.com", introduce el número de ID 315 (es el "Kubernetes cluster monitoring (via Prometheus)" oficial).
+
+Haz clic en el botón "Load".
+
+En la pantalla siguiente, abre el menú desplegable (dropdown) que está abajo del todo, al lado de la palabra "Prometheus", y selecciona la base de datos de Prometheus que creamos en el paso anterior.
+
+Pulsa en "Import". El dashboard se dibujará de inmediato en pantalla.
