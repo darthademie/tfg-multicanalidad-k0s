@@ -23,7 +23,7 @@ Dirígete al panel lateral izquierdo de Grafana y haz clic en "Connections" -> "
 
 Pulsa sobre el botón azul "Add data source" y selecciona "Prometheus".
 
-En la caja de texto "Prometheus server URL", introduce la ruta interna del clúster donde escucha el servicio que creamos: [http://prometheus-svc.monitoring.svc.cluster.local:9090](http://prometheus-svc.monitoring.svc.cluster.local:9090)
+En la caja de texto "Prometheus server URL", introduce la ruta interna del clúster donde escucha el servicio que creamos: http://prometheus-svc.monitoring.svc.cluster.local:9090
 
 Baja hasta el final de la página y pulsa en "Save & test". Debería aparecerte un mensaje verde indicando "Data source is working".
 
