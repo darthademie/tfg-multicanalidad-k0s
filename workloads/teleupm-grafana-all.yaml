@@ -15,7 +15,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: teleupm-grafana-pvc
+  name: grafana-pvc
   namespace: monitoring
 spec:
   volumeName: teleupm-grafana-pv
@@ -41,21 +41,24 @@ spec:
       labels:
         app: grafana
     spec:
-      # Da permisos de escritura al usuario de Grafana (472)
       securityContext:
         fsGroup: 472
-        runAsUser: 472
-      # --- Cambia los permisos de la carpeta antes de arrancar Grafana ---
+      # Busybox como ROOT (0)
       initContainers:
         - name: fix-permissions
           image: busybox
           command: ["sh", "-c", "chown -R 472:472 /var/lib/grafana"]
+          securityContext:
+            runAsUser: 0
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
       containers:
         - name: grafana
           image: grafana/grafana:latest
+          # El contenedor final corre como su usuario nativo (grafana: 472)
+          securityContext:
+            runAsUser: 472
           ports:
             - containerPort: 3000
           volumeMounts:
@@ -64,7 +67,7 @@ spec:
       volumes:
         - name: grafana-storage
           persistentVolumeClaim:
-            claimName: teleupm-grafana-pvc
+            claimName: grafana-pvc
 ---
 apiVersion: v1
 kind: Service
