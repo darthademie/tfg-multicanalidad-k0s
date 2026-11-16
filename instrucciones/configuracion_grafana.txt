@@ -13,9 +13,9 @@ Password: admin
 
 A continuación, la plataforma te pedirá que cambies esta contraseña inicial por una segura de tu elección para continuar.
 
-2.) Conexión de métricas (Data Source)
+2.) Conexión de métricas y logs (Data Sources)
 
---------> Configurar Prometheus
+--------> Configurar Prometheus (Métricas)
 
 Grafana solo pinta los gráficos, por lo que necesita saber dónde está Prometheus recopilando los datos reales de los contenedores de Kubernetes.
 
@@ -27,21 +27,33 @@ En la caja de texto "Prometheus server URL", introduce la ruta interna del clús
 
 Baja hasta el final de la página y pulsa en "Save & test". Debería aparecerte un mensaje verde indicando "Data source is working".
 
+--------> Configurar Loki (Logs)
+
+Para poder visualizar los registros de texto en tiempo real, conectaremos el motor de logs.
+
+Vuelve a "Connections" -> "Data sources" y pulsa en "Add new data source". Selecciona "Loki".
+
+En el campo URL, introduce el nombre del servicio interno: http://loki.monitoring.svc.cluster.local:3100
+
+Baja al final de la página y pulsa "Save & test". 
+*Nota técnica: Si aparece un mensaje de error rojo indicando "Unable to connect with Loki" o un error de sintaxis ("unexpected IDENTIFIER"), puedes ignorarlo con total seguridad y salir de la pantalla. Se trata de un falso positivo causado por el chequeo de salud interno de las nuevas versiones de Grafana. La conexión funcionará perfectamente.*
+
 3.) Importación de Dashboards
 
-Para tener una visión completa de todo el ecosistema, importaremos dos paneles además de los que ya están instalados: el tráfico del Ingress Controller y las automatizaciones de n8n.
+Para tener una visión completa de todo el ecosistema, importaremos dos paneles personalizados: el tráfico y logs del Ingress Controller, y las automatizaciones de n8n.
 
---------> B. Dashboard de NGINX Ingress Controller (Comunidad)
+--------> B. Dashboard de NGINX Ingress Controller (Archivo JSON local)
 
-Para analizar el tráfico de red, los tiempos de respuesta y las conexiones web entrantes, importaremos el panel oficial de NGINX.
+Para analizar el tráfico de red, los tiempos de respuesta, las conexiones web entrantes y visualizar los logs de acceso en tiempo real, importaremos el panel de NGINX que hemos adaptado para este entorno.
+Este dashboard es una adaptación del dashboard comunitario de Grafana "9614"
 
 Vuelve a pulsar en "Dashboards" -> "Import" en el menú lateral.
 
-En la casilla "Import via grafana.com", introduce el número de ID 9614.
+Haz clic en el botón "Upload JSON file".
 
-Haz clic en "Load", selecciona tu conexión de Prometheus en el desplegable inferior y pulsa "Import".
+Navega por tus archivos y selecciona el documento nginx-dashboard.json que se encuentra ubicado dentro de la misma carpeta Grafana de este proyecto.
 
-Nota importante de guardado: Una vez el dashboard cargue en pantalla, para asegurarte de que se registra definitivamente en tu Grafana, haz clic en el icono de guardar (Save) en la esquina superior derecha. Introduce una breve descripción en la ventana que aparece y confirma para terminar de guardarlo antes de salir.
+En la pantalla que aparece, selecciona tu fuente de datos de Prometheus y la de Loki en los desplegables correspondientes (si te lo solicita) y pulsa en "Import".
 
 --------> C. Dashboard de n8n (Archivo JSON local)
 
@@ -49,7 +61,7 @@ Por último, cargaremos el panel de telemetría específico para los flujos de t
 
 Vuelve de nuevo a "Dashboards" -> "Import".
 
-En esta ocasión, en lugar de introducir un ID, haz clic en el botón "Upload JSON file".
+Haz clic en el botón "Upload JSON file".
 
 Navega por tus archivos y selecciona el documento n8n-dashboard.json que se encuentra ubicado dentro de la carpeta Grafana de este proyecto.
 
