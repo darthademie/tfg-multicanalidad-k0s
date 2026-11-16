@@ -49,6 +49,7 @@ echo.
 
 echo [9/11] Activando el servidor de metricas...
 podman exec -it k0s-cluster k0s kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type="json" -p="[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args/8\", \"value\": \"--enable-metrics=true\"}]"
+podman exec -it k0s-cluster k0s kubectl patch service ingress-nginx-controller -n ingress-nginx --type="json" -p="[{\"op\": \"add\", \"path\": \"/spec/ports/-\", \"value\": {\"name\": \"metrics\", \"port\": 10254, \"targetPort\": 10254, \"protocol\": \"TCP\"}}]"
 echo.
 
 echo [10/11] Buscando la nueva IP del contenedor Jenkins...

@@ -27,18 +27,30 @@ En la caja de texto "Prometheus server URL", introduce la ruta interna del clús
 
 Baja hasta el final de la página y pulsa en "Save & test". Debería aparecerte un mensaje verde indicando "Data source is working".
 
-3.) Importación del Dashboard de Kubernetes
+3.) Importación de Dashboards
 
---------> Despliegue de paneles comunitarios
+Para tener una visión completa de todo el ecosistema, importaremos dos paneles además de los que ya están instalados: el tráfico del Ingress Controller y las automatizaciones de n8n.
 
-Para visualizar el uso de CPU, RAM, red y estado de todos los pods del clúster (incluyendo la web de TeleUPM, N8N, etc.), utilizaremos un dashboard preconfigurado por la comunidad.
+--------> B. Dashboard de NGINX Ingress Controller (Comunidad)
 
-En el menú lateral izquierdo, haz clic en el icono del símbolo más (+) o "Dashboards" y selecciona "Import".
+Para analizar el tráfico de red, los tiempos de respuesta y las conexiones web entrantes, importaremos el panel oficial de NGINX.
 
-En la casilla "Import via grafana.com", introduce el número de ID 315 (es el "Kubernetes cluster monitoring (via Prometheus)" oficial).
+Vuelve a pulsar en "Dashboards" -> "Import" en el menú lateral.
 
-Haz clic en el botón "Load".
+En la casilla "Import via grafana.com", introduce el número de ID 9614.
 
-En la pantalla siguiente, abre el menú desplegable (dropdown) que está abajo del todo, al lado de la palabra "Prometheus", y selecciona la base de datos de Prometheus que creamos en el paso anterior.
+Haz clic en "Load", selecciona tu conexión de Prometheus en el desplegable inferior y pulsa "Import".
 
-Pulsa en "Import". El dashboard se dibujará de inmediato en pantalla.
+Nota importante de guardado: Una vez el dashboard cargue en pantalla, para asegurarte de que se registra definitivamente en tu Grafana, haz clic en el icono de guardar (Save) en la esquina superior derecha. Introduce una breve descripción en la ventana que aparece y confirma para terminar de guardarlo antes de salir.
+
+--------> C. Dashboard de n8n (Archivo JSON local)
+
+Por último, cargaremos el panel de telemetría específico para los flujos de trabajo de automatización.
+
+Vuelve de nuevo a "Dashboards" -> "Import".
+
+En esta ocasión, en lugar de introducir un ID, haz clic en el botón "Upload JSON file".
+
+Navega por tus archivos y selecciona el documento n8n-dashboard.json que se encuentra ubicado dentro de la carpeta Grafana de este proyecto.
+
+Selecciona tu fuente de datos de Prometheus en el desplegable (si te lo solicita) y pulsa en "Import". Las métricas de n8n se empezarán a dibujar al instante.

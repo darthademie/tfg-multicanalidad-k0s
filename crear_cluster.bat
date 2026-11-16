@@ -14,13 +14,13 @@ pause >nul
 
 rem 1. Levantar los contenedores
 echo.
-echo [1/11] Levantando contenedores con Podman Compose...
+echo [1/12] Levantando contenedores con Podman Compose...
 podman compose up -d
 
 rem ############### CONFIGURACION DE JENKINS ###############
 
 echo.
-echo [2/11] Instalando el cliente de Docker dentro de Jenkins...
+echo [2/12] Instalando el cliente de Docker dentro de Jenkins...
 podman exec -u root jenkins-local bash -c "apt-get update && apt-get install -y docker.io"
 
 echo Esperando a que Jenkins genere la contrasena inicial...
@@ -35,19 +35,27 @@ echo ========================================================
 rem ############### ESPERA DE K0S E INGRESS ###############
 
 echo.
-echo [3/11] Esperando a que el cluster k0s termine de arrancar...
+echo [3/12] Esperando a que el cluster k0s termine de arrancar...
 podman exec k0s-cluster sh -c "until k0s kubectl get nodes >/dev/null 2>&1; do sleep 3; done"
 podman exec k0s-cluster k0s kubectl wait --for=condition=Ready node --all --timeout=120s
 
 echo.
-echo [4/11] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
+echo [4/12] Instalando Ingress-NGINX y enlazando puertos 30080/30443...
 podman exec k0s-cluster k0s kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/baremetal/deploy.yaml
 podman exec k0s-cluster sh -c "k0s kubectl patch svc ingress-nginx-controller -n ingress-nginx --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/nodePort\", \"value\": 30080}, {\"op\": \"replace\", \"path\": \"/spec/ports/1/nodePort\", \"value\": 30443}]'"
+
+rem Habilitamos el servidor de metricas del Nginx Ingress Controller
+
+rem 1. Habilitar el servidor de metricas
+podman exec -it k0s-cluster k0s kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type="json" -p="[{\"op\": \"replace\", \"path\": \"/spec/template/spec/containers/0/args/8\", \"value\": \"--enable-metrics=true\"}]"
+
+rem 2. Aniadir un puerto nuevo en el service para que Prometheus pueda ver las metricas
+podman exec -it k0s-cluster k0s kubectl patch service ingress-nginx-controller -n ingress-nginx --type="json" -p="[{\"op\": \"add\", \"path\": \"/spec/ports/-\", \"value\": {\"name\": \"metrics\", \"port\": 10254, \"targetPort\": 10254, \"protocol\": \"TCP\"}}]"
 
 rem ############### CONFIGURACION DE ARGOCD ###############
 
 echo.
-echo [5/11] Instalando y configurando ArgoCD...
+echo [5/12] Instalando y configurando ArgoCD...
 podman exec k0s-cluster sh -c "k0s kubectl create namespace argocd --dry-run=client -o yaml | k0s kubectl apply -f -"
 podman exec k0s-cluster k0s kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -70,7 +78,7 @@ echo ========================================================
 rem ############### CONFIGURACION DE NAMESPACE DE APLICACIONES ###############
 
 echo.
-echo [6/11] Creando namespaces para aplicaciones y monitorizacion...
+echo [6/12] Creando namespaces para aplicaciones y monitorizacion...
 
 podman exec k0s-cluster k0s kubectl create namespace apps
 podman exec k0s-cluster k0s kubectl create namespace monitoring
@@ -78,7 +86,7 @@ podman exec k0s-cluster k0s kubectl create namespace monitoring
 rem ############### CONFIGURACION DE CERTIFICADOS INGRESS ###############
 
 echo.
-echo [7/11] Inyectando certificado HTTPS para el Ingress...
+echo [7/12] Inyectando certificado HTTPS para el Ingress...
 
 rem 1. Copiar los archivos binarios puros al contenedor temporal
 podman cp certs\tls.crt k0s-cluster:/tmp/tls.crt
@@ -106,7 +114,7 @@ podman exec k0s-cluster sh -c "rm /tmp/tls.crt /tmp/tls.key"
 rem ############### ENRUTAR JENKINS/ARGOCD POR INGRESS ###############
 
 echo.
-echo [8/11] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
+echo [8/12] Configurando Ingress para Jenkins (https://jenkins.teleupm.com)
 echo y ArgoCD (https://argocd.teleupm.com)...
 
 echo.
@@ -179,7 +187,7 @@ type jenkins-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-argocd-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
-echo [9/11] Inyectando claves de Firebase y Telegram en Kubernetes...
+echo [9/12] Inyectando claves de Firebase y Telegram en Kubernetes...
 
 rem 1. Enviar el contenido de los ficheros locales a la carpeta temporal de k0s
 podman cp keys\serviceAccountKey.json k0s-cluster:/tmp/serviceAccountKey.json
@@ -201,7 +209,7 @@ podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_toke
 rem ############### DESPLIEGUE DE APLICACIONES ###############
 
 echo.
-echo [10/11] Desplegando gestor web, N8N y backend de Telegram...
+echo [10/12] Desplegando gestor web, N8N y backend de Telegram...
 
 rem Estos despliegues son solo para el arranque inicial, una vez ArgoCD está funcionando, las
 rem versiones de estos despliegues se actualizarán con las presentes en los Git del proyecto
@@ -209,13 +217,22 @@ type workloads\teleupm-n8n-all.yaml | podman exec -i k0s-cluster k0s kubectl app
 type workloads\teleupm-front-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 type workloads\teleupm-sbt-deployment.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
-rem ############### DESPLIEGUE DE GRAFANA Y PROMETHEUS ###############
+rem ############### DESPLIEGUE DE MONITORIZACION ###############
 
 echo.
-echo [11/11] Instalando Prometheus/Grafana y enrutando Grafana (https://grafana.teleupm.com) (User/Pass: admin/admin)...
+echo [11/12] Instalando helm para despliegue de stack de monitorizacion...
 
-type workloads\teleupm-prometheus-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
-type workloads\teleupm-grafana-all.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+podman exec -it k0s-cluster sh -c "export VERIFY_CHECKSUM=false && curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
+
+echo.
+echo [12/12] Desplegando Stack de Monitorizacion (Exporters + Prometheus + Grafana + Alertmanager)...
+echo (https://grafana.teleupm.com con User/Pass: admin/admin)
+
+podman exec -it k0s-cluster sh -c "helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update && helm install prometheus prometheus-community/kube-prometheus-stack --version 56.8.2 --namespace monitoring --set alertmanager.enabled=true --set grafana.adminPassword=admin"
+type workloads\teleupm-grafana-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+
+rem Despliegue de ServiceMonitors para que Prometheus vea N8N y Nginx Ingress Controller
+type workloads\teleupm-prometheus-servicemonitor.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 echo.
 echo ========================================================

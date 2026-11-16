@@ -59,6 +59,11 @@ spec:
           ports:
             - containerPort: 5678
           env:
+            # Metricas para Prometheus
+            - name: N8N_METRICS
+              value: "true"
+            - name: METRICS_PREFIX
+              value: "n8n_"
             # Le decimos a n8n que su frontend debe cargar bajo /flujos/
             - name: N8N_PATH
               value: "/flujos/"
@@ -78,10 +83,13 @@ kind: Service
 metadata:
   name: teleupm-n8n-svc
   namespace: apps
+  labels:
+    app: n8n
 spec:
   type: ClusterIP
   selector:
     app: n8n
   ports:
-    - port: 5678
+    - name: service-and-metrics
+      port: 5678
       targetPort: 5678
