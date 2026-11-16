@@ -225,7 +225,7 @@ echo [11/12] Instalando helm para despliegue de stack de monitorizacion...
 podman exec -it k0s-cluster sh -c "export VERIFY_CHECKSUM=false && curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash"
 
 echo.
-echo [12/12] Desplegando Stack de Monitorizacion (Exporters + Prometheus + Grafana + Alertmanager)...
+echo [12/12] Desplegando Stack de Monitorizacion (Exporters + Prometheus + Grafana + Alertmanager + Loki y Promtail)...
 echo (https://grafana.teleupm.com con User/Pass: admin/admin)
 
 podman exec -it k0s-cluster sh -c "helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update && helm install prometheus prometheus-community/kube-prometheus-stack --version 56.8.2 --namespace monitoring --set alertmanager.enabled=true --set grafana.adminPassword=admin"
@@ -233,6 +233,11 @@ type workloads\teleupm-grafana-ingress.yaml | podman exec -i k0s-cluster k0s kub
 
 rem Despliegue de ServiceMonitors para que Prometheus vea N8N y Nginx Ingress Controller
 type workloads\teleupm-prometheus-servicemonitor.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
+
+rem Insalación de Loki y Promtail
+rem pongo Loki sin PersistentVolume para evitar generar muchos log de desarrollo innecesarios,
+rem en un entorno real, debe estar con su StorageClass con dichos log rotados adecuadamente.
+podman exec -it k0s-cluster sh -c "helm repo add grafana https://grafana.github.io/helm-charts && helm repo update && helm install loki grafana/loki-stack --namespace monitoring --set grafana.enabled=false --set prometheus.enabled=false --set prometheus.alertmanager.persistentVolume.enabled=false --set server.persistentVolume.enabled=false"
 
 echo.
 echo ========================================================

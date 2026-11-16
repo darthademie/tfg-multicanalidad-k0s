@@ -213,7 +213,7 @@
   "time": { "from": "now-30m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "TFG - n8n Monitorización Principal",
+  "title": "TFG - N8N Monitorización Principal",
   "uid": "tfg-n8n-teleupm",
   "version": 1
 }
