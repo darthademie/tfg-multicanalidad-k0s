@@ -156,4 +156,11 @@ corruptos ante un mal cierre. En esos casos, no basta solo con ejecutar el scrip
 "reestablecer_red_podman.ps1".
 
 Ante esta situación, ejecutar "reestablecer_red_k0s.ps1". Este script borra los ingress
-y los vuelve a regenerar directamente
+y los vuelve a regenerar directamente.
+
+Para comprobar que funciona, hacer...
+
+[ podman exec -it k0s-cluster k0s kubectl get ingress -A ]
+
+Todos los ingress deben tener una ADDRESS que debe ser común. Reiniciar el PC si sigue sin
+aparecer
