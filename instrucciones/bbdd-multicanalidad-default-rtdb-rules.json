@@ -1,0 +1,53 @@
+{
+  "rules": {
+    // 1. Por defecto, cerramos toda la base de datos para que nadie no autorizado acceda
+    ".read": "false",
+    ".write": "false",
+    "telegram": {
+      ".indexOn": ".value"
+    },
+
+  "cola_procesamiento": {
+      // 3. El Administrador necesita poder subir posibles ofertas a cola_procesamiento entero para su panel
+        "ofertas": {
+          ".read": "false",
+          ".write": "auth != null"
+        },
+        "emails": {
+          ".read": "false",
+          ".write": "auth != null"
+        }
+    },
+
+    "dispositivos": {
+      // 2. El Administrador necesita leer el nodo raíz de dispositivos entero para su panel
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "false"
+    },
+
+    "tarifas": {
+      // 3. El usuario necesita poder visualizar las tarifas disponibles
+        ".read": "auth != null",
+        ".write": "false"
+    },
+
+    "usuarios": {
+      // 4. El Administrador necesita leer el nodo raíz de usuarios entero para su panel
+      ".read": "auth != null && auth.token.admin === true",
+      
+      "$uid": {
+        // Un usuario normal solo puede leer y escribir dentro de SU propio nodo.
+        // El administrador también tiene permiso para entrar aquí.
+        ".read": "auth != null && ($uid === auth.uid || auth.token.admin === true)",
+        ".write": "auth != null && ($uid === auth.uid || auth.token.admin === true)"
+      }
+    },
+    
+    "ofertas": {
+       // 5. Cualquiera que esté logueado puede leer las ofertas, 
+       // pero solo el backend (Python) o un admin pueden escribirlas.
+       ".read": "auth != null",
+       ".write": "auth != null && auth.token.admin === true"
+    }
+  }
+}
