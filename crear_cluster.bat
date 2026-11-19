@@ -228,7 +228,10 @@ echo.
 echo [12/12] Desplegando Stack de Monitorizacion (Exporters + Prometheus + Grafana + Alertmanager + Loki y Promtail)...
 echo (https://grafana.teleupm.com con User/Pass: admin/admin)
 
-podman exec -it k0s-cluster sh -c "helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update && helm install prometheus prometheus-community/kube-prometheus-stack --version 56.8.2 --namespace monitoring --set alertmanager.enabled=true --set grafana.adminPassword=admin"
+rem prometheus-node-exporter.hostRootFsMount.enabled=false: k0s corre dentro de un contenedor de Podman y su "/" no es
+rem un montaje compartido, por lo que node-exporter falla con CreateContainerError al montar la raiz del anfitrion.
+rem Sin ese montaje arranca y sigue dando metricas de CPU, memoria y red (no las de disco de la raiz).
+podman exec -it k0s-cluster sh -c "helm repo add prometheus-community https://prometheus-community.github.io/helm-charts && helm repo update && helm install prometheus prometheus-community/kube-prometheus-stack --version 56.8.2 --namespace monitoring --set alertmanager.enabled=true --set grafana.adminPassword=admin --set prometheus-node-exporter.hostRootFsMount.enabled=false"
 type workloads\teleupm-grafana-ingress.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 rem Despliegue de ServiceMonitors para que Prometheus vea N8N y Nginx Ingress Controller
