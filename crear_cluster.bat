@@ -235,9 +235,7 @@ rem Despliegue de ServiceMonitors para que Prometheus vea N8N y Nginx Ingress Co
 type workloads\teleupm-prometheus-servicemonitor.yaml | podman exec -i k0s-cluster k0s kubectl apply -f -
 
 rem Insalación de Loki y Promtail
-rem pongo Loki sin PersistentVolume para evitar generar muchos log de desarrollo innecesarios,
-rem en un entorno real, debe estar con su StorageClass con dichos log rotados adecuadamente.
-podman exec -it k0s-cluster sh -c "helm repo add grafana https://grafana.github.io/helm-charts && helm repo update && helm install loki grafana/loki-stack --namespace monitoring --set grafana.enabled=false --set prometheus.enabled=false --set prometheus.alertmanager.persistentVolume.enabled=false --set server.persistentVolume.enabled=false"
+podman exec -it k0s-cluster sh -c "helm repo add grafana https://grafana.github.io/helm-charts && helm repo update && helm install loki grafana/loki-stack --namespace monitoring --set grafana.enabled=false --set prometheus.enabled=false --set prometheus.alertmanager.persistentVolume.enabled=false --set server.persistentVolume.enabled=false --set loki.isDefault=false"
 
 echo.
 echo ========================================================
