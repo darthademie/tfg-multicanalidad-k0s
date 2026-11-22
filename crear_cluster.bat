@@ -201,7 +201,7 @@ podman exec k0s-cluster k0s kubectl delete secret teleupm-analytics-secret -n ap
 
 rem 3. Empaquetar ambos ficheros en un unico Secret de Kubernetes
 podman exec k0s-cluster k0s kubectl create secret generic teleupm-keys-secret --from-file=serviceAccountKey.json=/tmp/serviceAccountKey.json --from-file=telegram_token.txt=/tmp/telegram_token.txt -n apps
-podman exec k0s-cluster k0s kubectl create secret generic teleupm-analytics-secret --from-literal=GA_API_SECRET="$(podman exec k0s-cluster cat /tmp/api_key.txt)" --from-literal=GA_MEASUREMENT_ID="$(podman exec k0s-cluster cat /tmp/measurement_id.txt)" -n apps
+podman exec k0s-cluster sh -c "k0s kubectl create secret generic teleupm-analytics-secret --from-literal=GA_API_SECRET=$(tr -d '[:space:]' < /tmp/api_key.txt) --from-literal=GA_MEASUREMENT_ID=$(tr -d '[:space:]' < /tmp/measurement_id.txt) -n apps"
 
 rem 4. Limpiar los ficheros temporales por seguridad
 podman exec k0s-cluster sh -c "rm /tmp/serviceAccountKey.json /tmp/telegram_token.txt /tmp/api_key.txt /tmp/measurement_id.txt"
