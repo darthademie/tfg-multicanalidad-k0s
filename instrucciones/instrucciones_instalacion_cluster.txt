@@ -50,7 +50,185 @@ como administrador para añadirle las siguientes rutas...
 127.0.0.1  argocd.teleupm.com
 127.0.0.1  jenkins.teleupm.com
 
-7.) Tenemos que decirle a fireabase que "teleupm.com" es seguro para hacer login desde esa
+7.) Creación del proyecto de Firebase (solo si se replica el ecosistema desde cero)
+
+Si se usa el proyecto original (bbdd-multicanalidad) este paso y los tres siguientes
+ya están hechos y basta con tener los ficheros de configuración. Si se quiere replicar
+el proyecto en una cuenta propia, hacemos...
+
+- Entramos en console.firebase.google.com > "Crear un proyecto". Le damos un nombre
+(el original se llama "bbdd-multicanalidad").
+
+- En el asistente, dejamos ACTIVADO Google Analytics y elegimos (o creamos) una cuenta
+de Analytics. Esto crea la propiedad de GA4 que usarán la web, Android y el bot (paso 11).
+
+- Pasamos el proyecto al plan Blaze (pago por uso). Es obligatorio para desplegar las
+Cloud Functions, aunque con el uso de esta demostración no se sale de la capa gratuita.
+
+- Authentication > Sign-in method: activamos "Correo electrónico/contraseña" y "Google".
+
+- Realtime Database > Crear base de datos, en la ubicación "Bélgica (europe-west1)".
+Una vez creada, desde los tres puntos > "Importar JSON" cargamos el fichero
+"bbdd-multicanalidad-default-rtdb-base.json" de esta carpeta, y en la pestaña "Reglas"
+pegamos el contenido de "bbdd-multicanalidad-default-rtdb-rules.json".
+
+8.) Registro de las aplicaciones dentro del proyecto de Firebase
+
+Cada canal que habla con Firebase como cliente necesita estar registrado como una
+"aplicación" del proyecto. Desde la consola, en "Configuración del proyecto" (rueda dentada
+junto a "Descripción general") > pestaña "General" > sección "Tus aplicaciones",
+creamos dos aplicaciones:
+
+- Aplicación web (icono </>) para el Panel TeleUPM:
+
+  Apodo: el que queramos (por ejemplo "panel-teleupm").
+  NO hace falta marcar Firebase Hosting, porque la web se sirve desde Nginx en el k0s.
+  Al registrarla, Firebase muestra un bloque "const firebaseConfig = { ... }" con
+  apiKey, authDomain, databaseURL, projectId, storageBucket, messagingSenderId,
+  appId y measurementId. Lo copiamos (se puede volver a consultar en cualquier momento
+  desde esta misma sección, opción "Config").
+
+- Aplicación Android (icono del robot) para la App Personas Físicas:
+
+  Nombre del paquete de Android: com.darthademie.teleupm  (TIENE que coincidir con el
+  "applicationId" de tfg-multicanalidad-mov/app/build.gradle, si no, Firebase rechaza la app).
+  Apodo: el que queramos (por ejemplo "app-personas-fisicas").
+  Certificado de firma SHA-1: lo podemos dejar vacío ahora y añadirlo en el paso 10.
+  Al registrarla, descargamos el fichero "google-services.json".
+
+Los backends (Cloud Functions, bot de Telegram, Envíos 53 y la utilidad de admin) no se
+registran como aplicaciones: usan el Admin SDK con una clave de cuenta de servicio.
+Esa clave se genera en "Configuración del proyecto" > pestaña "Cuentas de servicio" >
+"Generar nueva clave privada", y se descarga un JSON que renombraremos a
+"serviceAccountKey.json".
+
+¡¡OJO!! google-services.json, serviceAccountKey.json y los ficheros del paso 11 son
+credenciales. Ya están en los .gitignore de cada repo y NUNCA se suben a Git.
+
+9.) Colocación de los ficheros de configuración generados en cada repositorio
+
+Con lo obtenido en el paso anterior, colocamos cada fichero en su sitio. ANTES de ejecutar
+"crear_cluster.bat", ya que este script lee las claves de las carpetas keys/ y analytics/.
+
+- Panel TeleUPM (tfg-multicanalidad-web):
+  Sustituimos los valores del objeto "firebaseConfig" por los copiados de la app web en...
+
+    src/environments/environment.ts
+    src/environments/environment.prod.ts
+    src/app/app.config.ts  (aquí la configuración está en una sola línea dentro de initializeApp)
+
+  Estos valores son públicos por diseño (identifican el proyecto, la seguridad la ponen
+  las reglas de la RTDB y Authentication), por eso sí van en el repositorio.
+
+- App Personas Físicas (tfg-multicanalidad-mov):
+  Copiamos el "google-services.json" descargado en la carpeta del módulo app...
+
+    tfg-multicanalidad-mov/app/google-services.json
+
+  En Android Studio, hacemos "Sync Project with Gradle Files". El plugin
+  com.google.gms.google-services lee este fichero al compilar (de ahí salen, entre otros,
+  la URL de la RTDB y el "default_web_client_id" que usa el login con Google).
+
+- Bot de Telegram, Envíos 53, utilidad de admin y clúster:
+  Copiamos "serviceAccountKey.json" en la carpeta keys/ de cada repo...
+
+    tfg-multicanalidad-sbt/keys/serviceAccountKey.json
+    tfg-multicanalidad-extenv/keys/serviceAccountKey.json
+    tfg-multicanalidad-admin/keys/serviceAccountKey.json
+    tfg-multicanalidad-k0s/keys/serviceAccountKey.json   (de aquí la coge crear_cluster.bat para el Secret del bot)
+
+  En la misma carpeta keys/ del sbt y del k0s va también "telegram_token.txt" con el
+  token del bot que da @BotFather.
+
+- Si el proyecto NO es el original, hay que cambiar además la URL de la RTDB, que está
+  escrita en el código ("databaseURL"), en...
+
+    tfg-multicanalidad-sbt/main.py
+    tfg-multicanalidad-extenv/app_envios.py
+
+  y el id del proyecto en tfg-multicanalidad-corecf/.firebaserc (o hacer
+  "firebase use --add" desde esa carpeta) antes de desplegar las Cloud Functions con
+  "firebase deploy --only functions".
+
+10.) Obtener las huellas SHA de la app Android con Gradle y registrarlas en Firebase
+
+Firebase solo acepta peticiones de login con Google (y, en general, las de los servicios de
+Google Play como Analytics) de una app Android cuya firma conozca. Si no registramos las
+huellas, el botón de "Iniciar sesión con Google" falla (normalmente con el error
+"ApiException: 10" / DEVELOPER_ERROR).
+
+La app se firma siempre con el keystore estático "app/my-debug.keystore" (ver el bloque
+"signingConfigs" de app/build.gradle y "notas_ci-cd.txt" del repo mov), tanto en local como
+en Jenkins, así que sus huellas son las mismas en todas las compilaciones.
+
+Para obtenerlas, abrimos el proyecto tfg-multicanalidad-mov en Android Studio y en la
+pestaña "Terminal" (abajo), desde la raíz del proyecto, ejecutamos...
+
+[ .\gradlew signingReport ]
+
+(En Android Studio también se puede lanzar desde el panel "Gradle" de la derecha >
+icono de "Execute Gradle Task" > escribir "signingReport").
+
+Gradle imprime un bloque por cada variante. Nos fijamos en el de "Variant: debug" /
+"Config: debug", cuyo "Store" debe apuntar a ...\app\my-debug.keystore, y copiamos las
+líneas "SHA1:" y "SHA-256:".
+
+Después, en la consola de Firebase > "Configuración del proyecto" > "General" >
+"Tus aplicaciones" > app Android (com.darthademie.teleupm) > "Añadir huella digital",
+pegamos primero el SHA-1 y guardamos, y repetimos con el SHA-256.
+
+MUY IMPORTANTE: después de añadir las huellas, volvemos a descargar el "google-services.json"
+desde esa misma pantalla y sustituimos el de app/ (paso 9). El fichero nuevo incluye el
+cliente OAuth asociado a la huella; con el antiguo, el login con Google sigue fallando.
+Hacemos "Sync Project with Gradle Files" y recompilamos.
+
+Si se genera un keystore distinto (o se firma en release), hay que repetir este paso con
+las huellas del nuevo certificado.
+
+11.) Obtener el Measurement ID y el API secret de Google Analytics 4
+
+Todo el ecosistema envía sus eventos a la MISMA propiedad de GA4, la que se vinculó al crear
+el proyecto de Firebase (paso 7):
+
+- La web (SDK de Firebase JS) usa el "measurementId" de su firebaseConfig.
+- Android (SDK de Firebase Analytics) se identifica con su propio stream, que viene dentro
+  del google-services.json, por lo que no necesita nada más.
+- El bot de Telegram no tiene SDK: manda los eventos por HTTP con el Measurement Protocol, y
+  para eso necesita un Measurement ID y un API secret. Son las variables de entorno
+  GA_MEASUREMENT_ID y GA_API_SECRET, que crear_cluster.bat mete en el Secret
+  "teleupm-analytics-secret" a partir de los ficheros de la carpeta analytics/ de este repo.
+
+Measurement ID (formato G-XXXXXXXXXX):
+
+  Se puede copiar directamente del campo "measurementId" de la app web (paso 8), o bien en
+  analytics.google.com > Administrar (rueda dentada abajo a la izquierda) > en la columna
+  de la propiedad, "Recogida y modificación de datos" > "Flujos de datos" > seleccionamos
+  el flujo web que creó Firebase > "ID DE MEDICIÓN".
+
+API secret del Measurement Protocol:
+
+  Desde ese mismo flujo de datos web (analytics.google.com > Administrar > Flujos de datos >
+  flujo web), bajamos hasta "Secretos de la API de Measurement Protocol" > "Crear".
+  Aceptamos las condiciones si lo pide, le damos un apodo (por ejemplo "sbt-teleupm") y
+  copiamos el "Valor del secreto" que se genera.
+
+  El secreto debe pertenecer al MISMO flujo que el Measurement ID; si no, GA4 descarta los
+  eventos sin dar error (el endpoint /mp/collect responde siempre 204).
+
+Guardamos cada valor en un fichero de texto, solo el valor, en una única línea y sin espacios
+ni salto de línea al final...
+
+  tfg-multicanalidad-k0s/analytics/measurement_id.txt   ->  G-XXXXXXXXXX
+  tfg-multicanalidad-k0s/analytics/api_key.txt          ->  valor del secreto
+
+La carpeta analytics/ no se sube a Git. Para ejecutar el bot en local fuera del clúster
+(python main.py), estos mismos valores se pasan como variables de entorno
+GA_MEASUREMENT_ID y GA_API_SECRET.
+
+Para comprobar que llegan los eventos: analytics.google.com > Informes > "Tiempo real"
+mientras se hacen acciones en la web, la app o el bot (pueden tardar unos segundos).
+
+12.) Tenemos que decirle a fireabase que "teleupm.com" es seguro para hacer login desde esa
 página. De lo contrario, el login con Google fallará en la app de gestión web.
 
 Para ello, debes registrarlo en dos plataformas:
@@ -78,7 +256,7 @@ En el apartado URI de redireccionamiento autorizados, añade la ruta estándar q
 
 Guarda los cambios (Tarda de 5 a 10 minutos en aplicarse).
 
-7.) Para importar el certificado, en esta demostración se usó chrome.
+13.) Para importar el certificado, en esta demostración se usó chrome.
 
 Importamos el certificado "certs/cert_CA_tfg_tsi.cer" Menú lateral > Configuración > Privacidad
 y seguridad > Seguridad > Gestionar certificados > Instalados por ti", y hacemos click en el 
@@ -87,9 +265,9 @@ botón de "Importar".
 De ahí, seleccionamos el certificado mencionado para instalarlo. Cerramos y abrimos chrome
 para que se apliquen los cambios
 
-8.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
+14.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
 
-9.) Configuración de ngrok
+15.) Configuración de ngrok
 
 Se usará ngrok para los webhook de Jenkins y N8N. Se decidió el uso
 de este software para simplificar la demostración de las comunicaciones
