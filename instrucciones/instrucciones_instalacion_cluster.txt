@@ -52,7 +52,7 @@ como administrador para añadirle las siguientes rutas...
 
 7.) Creación del proyecto de Firebase (solo si se replica el ecosistema desde cero)
 
-Si se usa el proyecto original (bbdd-multicanalidad) este paso y los tres siguientes
+Si se usa el proyecto original (bbdd-multicanalidad) este paso y los cuatro siguientes
 ya están hechos y basta con tener los ficheros de configuración. Si se quiere replicar
 el proyecto en una cuenta propia, hacemos...
 
@@ -60,19 +60,68 @@ el proyecto en una cuenta propia, hacemos...
 (el original se llama "bbdd-multicanalidad").
 
 - En el asistente, dejamos ACTIVADO Google Analytics y elegimos (o creamos) una cuenta
-de Analytics. Esto crea la propiedad de GA4 que usarán la web, Android y el bot (paso 11).
+de Analytics. Esto crea la propiedad de GA4 que usarán la web, Android y el bot (paso 12).
 
 - Pasamos el proyecto al plan Blaze (pago por uso). Es obligatorio para desplegar las
 Cloud Functions, aunque con el uso de esta demostración no se sale de la capa gratuita.
 
 - Authentication > Sign-in method: activamos "Correo electrónico/contraseña" y "Google".
 
-- Realtime Database > Crear base de datos, en la ubicación "Bélgica (europe-west1)".
-Una vez creada, desde los tres puntos > "Importar JSON" cargamos el fichero
-"bbdd-multicanalidad-default-rtdb-base.json" de esta carpeta, y en la pestaña "Reglas"
-pegamos el contenido de "bbdd-multicanalidad-default-rtdb-rules.json".
+- Realtime Database > Crear base de datos, en la ubicación "Bélgica (europe-west1)" y en
+"modo bloqueado". Los datos y las reglas se cargan en el paso siguiente.
 
-8.) Registro de las aplicaciones dentro del proyecto de Firebase
+8.) Carga del backup de la Realtime Database y de sus reglas de seguridad
+
+En esta misma carpeta (instrucciones/) hay dos ficheros exportados del proyecto original:
+
+- "bbdd-multicanalidad-default-rtdb-base.json": datos base de la RTDB. Contiene el
+  catálogo (dispositivos/ y tarifas/), las promociones (ofertas_disponibles/) y el nodo
+  telegram/ con un marcador "clave_a_mano". El resto de nodos (usuarios/, ofertas/ y
+  cola_procesamiento/) no hace falta importarlos: los crean las apps y las Cloud Functions
+  la primera vez que se usan.
+- "bbdd-multicanalidad-default-rtdb-rules.json": reglas de seguridad de la RTDB (todo
+  cerrado por defecto, colas abiertas a usuarios autenticados, catálogo y lectura completa
+  de usuarios reservados al rol admin, y cada usuario solo accede a su usuarios/$uid).
+
+Con la base de datos recién creada en el paso anterior, en la consola de Firebase:
+
+- Importar los datos:
+  Realtime Database > pestaña "Datos" > menú de los tres puntos (arriba a la derecha) >
+  "Importar JSON" > "Examinar" y elegimos "bbdd-multicanalidad-default-rtdb-base.json" >
+  "Importar".
+
+  ¡¡OJO!! La importación sobrescribe por completo el nodo donde se hace (la raíz, en este
+  caso). Hacerlo solo con la base de datos vacía o si no nos importa perder lo que tenga.
+
+  Alternativa por consola, con Firebase CLI instalado (npm install -g firebase-tools) y
+  tras hacer "firebase login", desde esta carpeta...
+
+  [ firebase database:set / bbdd-multicanalidad-default-rtdb-base.json --project <id-del-proyecto> ]
+
+  (si la base de datos no es la de por defecto, añadir --instance <nombre-de-la-instancia>)
+
+- Cargar las reglas de seguridad:
+  Realtime Database > pestaña "Reglas". Borramos el contenido que trae por defecto,
+  pegamos el contenido completo de "bbdd-multicanalidad-default-rtdb-rules.json" y
+  pulsamos "Publicar".
+
+  Las reglas se pegan desde la consola a propósito: el fichero tiene comentarios (//), que
+  el editor de reglas de Firebase admite pero que no son JSON válido, así que no se puede
+  subir con "Importar JSON" ni con database:set.
+
+- Comprobación: en la pestaña "Datos" deben aparecer los nodos dispositivos, ofertas_disponibles,
+  tarifas y telegram, y en "Reglas" debe verse ".read": "false" y ".write": "false" en la raíz.
+  En la pestaña "Reglas" hay también un "Área de prueba de reglas" para simular lecturas y
+  escrituras con o sin autenticación.
+
+Nota: las reglas no se versionan en el repo de las Cloud Functions; se gestionan desde la
+consola. Si se cambian, se puede refrescar el fichero de esta carpeta desde la raíz del repo k0s,
+en Git Bash (en PowerShell el ">" guarda el fichero en UTF-16; MSYS_NO_PATHCONV=1 evita
+que Git Bash convierta "/.settings/rules" en una ruta de Windows), con...
+
+[ MSYS_NO_PATHCONV=1 firebase database:get "/.settings/rules" --project <id-del-proyecto> > instrucciones/bbdd-multicanalidad-default-rtdb-rules.json ]
+
+9.) Registro de las aplicaciones dentro del proyecto de Firebase
 
 Cada canal que habla con Firebase como cliente necesita estar registrado como una
 "aplicación" del proyecto. Desde la consola, en "Configuración del proyecto" (rueda dentada
@@ -93,7 +142,7 @@ creamos dos aplicaciones:
   Nombre del paquete de Android: com.darthademie.teleupm  (TIENE que coincidir con el
   "applicationId" de tfg-multicanalidad-mov/app/build.gradle, si no, Firebase rechaza la app).
   Apodo: el que queramos (por ejemplo "app-personas-fisicas").
-  Certificado de firma SHA-1: lo podemos dejar vacío ahora y añadirlo en el paso 10.
+  Certificado de firma SHA-1: lo podemos dejar vacío ahora y añadirlo en el paso 11.
   Al registrarla, descargamos el fichero "google-services.json".
 
 Los backends (Cloud Functions, bot de Telegram, Envíos 53 y la utilidad de admin) no se
@@ -102,10 +151,10 @@ Esa clave se genera en "Configuración del proyecto" > pestaña "Cuentas de serv
 "Generar nueva clave privada", y se descarga un JSON que renombraremos a
 "serviceAccountKey.json".
 
-¡¡OJO!! google-services.json, serviceAccountKey.json y los ficheros del paso 11 son
+¡¡OJO!! google-services.json, serviceAccountKey.json y los ficheros del paso 12 son
 credenciales. Ya están en los .gitignore de cada repo y NUNCA se suben a Git.
 
-9.) Colocación de los ficheros de configuración generados en cada repositorio
+10.) Colocación de los ficheros de configuración generados en cada repositorio
 
 Con lo obtenido en el paso anterior, colocamos cada fichero en su sitio. ANTES de ejecutar
 "crear_cluster.bat", ya que este script lee las claves de las carpetas keys/ y analytics/.
@@ -150,7 +199,7 @@ Con lo obtenido en el paso anterior, colocamos cada fichero en su sitio. ANTES d
   "firebase use --add" desde esa carpeta) antes de desplegar las Cloud Functions con
   "firebase deploy --only functions".
 
-10.) Obtener las huellas SHA de la app Android con Gradle y registrarlas en Firebase
+11.) Obtener las huellas SHA de la app Android con Gradle y registrarlas en Firebase
 
 Firebase solo acepta peticiones de login con Google (y, en general, las de los servicios de
 Google Play como Analytics) de una app Android cuya firma conozca. Si no registramos las
@@ -178,14 +227,14 @@ Después, en la consola de Firebase > "Configuración del proyecto" > "General" 
 pegamos primero el SHA-1 y guardamos, y repetimos con el SHA-256.
 
 MUY IMPORTANTE: después de añadir las huellas, volvemos a descargar el "google-services.json"
-desde esa misma pantalla y sustituimos el de app/ (paso 9). El fichero nuevo incluye el
+desde esa misma pantalla y sustituimos el de app/ (paso 10). El fichero nuevo incluye el
 cliente OAuth asociado a la huella; con el antiguo, el login con Google sigue fallando.
 Hacemos "Sync Project with Gradle Files" y recompilamos.
 
 Si se genera un keystore distinto (o se firma en release), hay que repetir este paso con
 las huellas del nuevo certificado.
 
-11.) Obtener el Measurement ID y el API secret de Google Analytics 4
+12.) Obtener el Measurement ID y el API secret de Google Analytics 4
 
 Todo el ecosistema envía sus eventos a la MISMA propiedad de GA4, la que se vinculó al crear
 el proyecto de Firebase (paso 7):
@@ -200,7 +249,7 @@ el proyecto de Firebase (paso 7):
 
 Measurement ID (formato G-XXXXXXXXXX):
 
-  Se puede copiar directamente del campo "measurementId" de la app web (paso 8), o bien en
+  Se puede copiar directamente del campo "measurementId" de la app web (paso 9), o bien en
   analytics.google.com > Administrar (rueda dentada abajo a la izquierda) > en la columna
   de la propiedad, "Recogida y modificación de datos" > "Flujos de datos" > seleccionamos
   el flujo web que creó Firebase > "ID DE MEDICIÓN".
@@ -228,7 +277,7 @@ GA_MEASUREMENT_ID y GA_API_SECRET.
 Para comprobar que llegan los eventos: analytics.google.com > Informes > "Tiempo real"
 mientras se hacen acciones en la web, la app o el bot (pueden tardar unos segundos).
 
-12.) Tenemos que decirle a fireabase que "teleupm.com" es seguro para hacer login desde esa
+13.) Tenemos que decirle a fireabase que "teleupm.com" es seguro para hacer login desde esa
 página. De lo contrario, el login con Google fallará en la app de gestión web.
 
 Para ello, debes registrarlo en dos plataformas:
@@ -256,7 +305,7 @@ En el apartado URI de redireccionamiento autorizados, añade la ruta estándar q
 
 Guarda los cambios (Tarda de 5 a 10 minutos en aplicarse).
 
-13.) Para importar el certificado, en esta demostración se usó chrome.
+14.) Para importar el certificado, en esta demostración se usó chrome.
 
 Importamos el certificado "certs/cert_CA_tfg_tsi.cer" Menú lateral > Configuración > Privacidad
 y seguridad > Seguridad > Gestionar certificados > Instalados por ti", y hacemos click en el 
@@ -265,9 +314,9 @@ botón de "Importar".
 De ahí, seleccionamos el certificado mencionado para instalarlo. Cerramos y abrimos chrome
 para que se apliquen los cambios
 
-14.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
+15.) Ejecutamos el fichero "crear_cluster.bat" en una terminal de Windows
 
-15.) Configuración de ngrok
+16.) Configuración de ngrok
 
 Se usará ngrok para los webhook de Jenkins y N8N. Se decidió el uso
 de este software para simplificar la demostración de las comunicaciones
