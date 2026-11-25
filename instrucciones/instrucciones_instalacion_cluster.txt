@@ -169,7 +169,7 @@ Con lo obtenido en el paso anterior, colocamos cada fichero en su sitio. ANTES d
   Estos valores son públicos por diseño (identifican el proyecto, la seguridad la ponen
   las reglas de la RTDB y Authentication), por eso sí van en el repositorio.
 
-- App Personas Físicas (tfg-multicanalidad-mov):
+- App Tele UPM (tfg-multicanalidad-mov):
   Copiamos el "google-services.json" descargado en la carpeta del módulo app...
 
     tfg-multicanalidad-mov/app/google-services.json
